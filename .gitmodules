@@ -1,0 +1,3 @@
+[submodule "YaEcs"]
+	path = YaEcs
+	url = https://github.com/theon1y/YaEcs.git
