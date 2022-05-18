@@ -8,7 +8,14 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+      <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
       <PackageReference Include="Silk.NET.Core" Version="2.15.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\YaEcs\MicrosoftDependencyInjectionExtensions\MicrosoftDependencyInjectionExtensions.csproj" />
+      <ProjectReference Include="..\YaEcs\YaECS\YaEcs.csproj" />
     </ItemGroup>
 
 </Project>

@@ -2,6 +2,10 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YaEngine", "YaEngine\YaEngine.csproj", "{AD2CD0E5-7264-492B-8404-4F93DC7E0B5B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "YaEcs", "YaEcs\YaECS\YaEcs.csproj", "{0C5CB1BF-2E4B-43E3-A6F3-AE3FECC1DD19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MicrosoftDependencyInjectionExtensions", "YaEcs\MicrosoftDependencyInjectionExtensions\MicrosoftDependencyInjectionExtensions.csproj", "{018E2FDB-5BD6-4D51-803C-3AEEC9650BE2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +16,13 @@ Global
 		{AD2CD0E5-7264-492B-8404-4F93DC7E0B5B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AD2CD0E5-7264-492B-8404-4F93DC7E0B5B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AD2CD0E5-7264-492B-8404-4F93DC7E0B5B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C5CB1BF-2E4B-43E3-A6F3-AE3FECC1DD19}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C5CB1BF-2E4B-43E3-A6F3-AE3FECC1DD19}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C5CB1BF-2E4B-43E3-A6F3-AE3FECC1DD19}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C5CB1BF-2E4B-43E3-A6F3-AE3FECC1DD19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{018E2FDB-5BD6-4D51-803C-3AEEC9650BE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{018E2FDB-5BD6-4D51-803C-3AEEC9650BE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{018E2FDB-5BD6-4D51-803C-3AEEC9650BE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{018E2FDB-5BD6-4D51-803C-3AEEC9650BE2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
