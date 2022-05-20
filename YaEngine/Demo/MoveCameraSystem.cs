@@ -1,0 +1,76 @@
+﻿using System.Numerics;
+using Silk.NET.Input;
+using YaEcs;
+using YaEcs.Bootstrap;
+using YaEngine.Bootstrap;
+using YaEngine.Core;
+using YaEngine.Input;
+
+namespace YaEngine
+{
+    public class MoveCameraSystem : IUpdateSystem
+    {
+        public UpdateStep UpdateStep => UpdateSteps.Update;
+
+        private static readonly Key[] MoveBindings = { Key.D, Key.A, Key.W, Key.S };
+        private static readonly Key[] LookBindings = { Key.Right, Key.Left, Key.Down, Key.Up };
+        
+        public void Execute(IWorld world)
+        {
+            if (!world.TryGetSingleton(out InputContext input)) return;
+            if (!world.TryGetSingleton(out Time time)) return;
+            
+            var rotate = input.MouseDelta * 0.01f;
+            var speed = 2.5f * time.DeltaTime;
+            var move = Vector2.Zero;
+            AppendMovement(input, LookBindings, ref rotate, speed);
+            AppendMovement(input, MoveBindings, ref move, speed);
+
+            world.ForEach((Entity _, Camera _, Transform transform) =>
+            {
+                if (move.LengthSquared() > MathUtils.Epsilon)
+                {
+                    var forward = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, transform.Rotation));
+                    var right = Vector3.Normalize(Vector3.Cross(forward, Vector3.UnitY));
+                    transform.Position += forward * move.Y + right * move.X;
+                }
+
+                if (rotate.LengthSquared() > MathUtils.Epsilon)
+                {
+                    transform.Rotation = Rotate(rotate, transform.Rotation);
+                }
+            });
+        }
+
+        private void AppendMovement(InputContext input, Key[] bindings, ref Vector2 value, float delta)
+        {
+            if (input.IsKeyDown(bindings[0]))
+            {
+                value.X += delta;
+            }
+            if (input.IsKeyDown(bindings[1]))
+            {
+                value.X -= delta;
+            }
+            if (input.IsKeyDown(bindings[2]))
+            {
+                value.Y += delta;
+            }
+            if (input.IsKeyDown(bindings[3]))
+            {
+                value.Y -= delta;
+            }
+        }
+
+        private Quaternion Rotate(Vector2 offset, Quaternion current)
+        {
+            var rotationEulers = current.ToEulerDegrees();
+            rotationEulers.Y -= offset.X;
+            var x = MathUtils.NormalizeAngleDegrees(rotationEulers.X + offset.Y * 2);
+            rotationEulers.X = (x is > 90 and < 270) ? 90f : x;
+
+            var (pitch, yaw, roll) = rotationEulers.ToRadians().NormalizeAngles().Deconstruct();
+            return Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);
+        }
+    }
+}
