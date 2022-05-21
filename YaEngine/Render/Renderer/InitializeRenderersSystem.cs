@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Silk.NET.OpenGL;
 using YaEcs;
+using YaEngine.Animation;
 using YaEngine.Bootstrap;
 using YaEngine.Render.OpenGL;
 
@@ -45,16 +46,18 @@ namespace YaEngine.Render
             world.AddComponent(entity, renderer);
         }
 
-        private static void MapAttributes(Renderer? renderer, Mesh? mesh)
+        private static void MapAttributes(Renderer renderer, Mesh mesh)
         {
             PointIfPresent(renderer, "vPos", 3, mesh.PositionOffset);
             PointIfPresent(renderer, "vColor", 4, mesh.ColorOffset);
             PointIfPresent(renderer, "vUv", 2, mesh.Uv0Offset);
             PointIfPresent(renderer, "vUv1", 2, mesh.Uv1Offset);
             PointIfPresent(renderer, "vNormal", 3, mesh.NormalOffset);
+            PointIfPresent(renderer, "vBoneWeights", Bone.MaxNesting, mesh.BoneWeightOffset);
+            PointIfPresent(renderer, "vBoneIds", Bone.MaxNesting, mesh.BoneIdOffset, VertexAttribPointerType.Int);
         }
 
-        private static void BindBuffers(GL gl, Renderer renderer, Mesh? mesh)
+        private static void BindBuffers(GL gl, Renderer renderer, Mesh mesh)
         {
             renderer.Ebo = new BufferObject<uint>(gl, mesh.Indexes, BufferTargetARB.ElementArrayBuffer,
                 BufferUsageARB.StaticDraw);
@@ -99,13 +102,14 @@ namespace YaEngine.Render
             }
         }
 
-        private static void PointIfPresent(Renderer renderer, string attributeName, int attributeSize, int attributeOffset)
+        private static void PointIfPresent(Renderer renderer, string attributeName, int attributeSize,
+            int attributeOffset, VertexAttribPointerType type = VertexAttribPointerType.Float)
         {
             if (!renderer.Material.Shader.TryGetAttributeLocation(attributeName, out var location)) return;
             
             if (attributeOffset < 0) return;
             
-            renderer.Vao.VertexAttributePointer((uint)location, attributeSize, VertexAttribPointerType.Float,
+            renderer.Vao.VertexAttributePointer((uint)location, attributeSize, type,
                 renderer.Mesh.VertexSize, attributeOffset);
         }
     }

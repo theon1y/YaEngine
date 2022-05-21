@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Text;
 using Silk.NET.Assimp;
@@ -49,12 +50,17 @@ namespace YaEngine.Import
                 var newMesh = new Mesh();
                 result[i] = newMesh;
 
-                var vertexSize = CalculateVertexSizeAndWriteOffsets(pMesh, newMesh);
+                var boneMapping = GetBoneMapping(pMesh);
+                
+                var vertexSize = CalculateVertexSizeAndWriteOffsets(pMesh, newMesh, boneMapping);
                 newMesh.VertexSize = (uint) vertexSize;
                 
                 var verticesCount = pMesh->MNumVertices;
                 newMesh.Vertices = new float[vertexSize * verticesCount];
                 WriteVertexData(verticesCount, vertexSize, pMesh, newMesh.Vertices);
+                
+                newMesh.Bones = boneMapping.Bones;
+                WriteBoneData(newMesh, boneMapping.Weights);
 
                 newMesh.Indexes = GetIndexData(pMesh);
             }
@@ -62,13 +68,20 @@ namespace YaEngine.Import
             return result;
         }
 
-        private unsafe int CalculateVertexSizeAndWriteOffsets(ImportMesh* pMesh, Mesh newMesh)
+        private unsafe int CalculateVertexSizeAndWriteOffsets(ImportMesh* pMesh, Mesh newMesh, BoneMapping boneMapping)
         {
             var vertexSize = 0;
             foreach (var importer in meshImporters)
             {
                 vertexSize = importer.TryAppendSize(pMesh, newMesh, vertexSize);
             }
+
+            if (boneMapping.Weights.Count <= 0) return vertexSize;
+            
+            newMesh.BoneIdOffset = vertexSize;
+            vertexSize += Animation.Bone.MaxNesting;
+            newMesh.BoneWeightOffset = vertexSize;
+            vertexSize += Animation.Bone.MaxNesting;
 
             return vertexSize;
         }
@@ -81,6 +94,25 @@ namespace YaEngine.Import
                 foreach (var importer in meshImporters)
                 {
                     offset = importer.TryCopyTo(pMesh, i, vertexData, offset);
+                }
+            }
+        }
+
+        private static void WriteBoneData(Mesh mesh, Dictionary<uint, List<BoneWeight>> boneWeights)
+        {
+            var vertexData = mesh.Vertices;
+            for (uint i = 0; i < vertexData.Length; ++i)
+            {
+                if (!boneWeights.TryGetValue(i, out var weights)) continue;
+
+                var vertexOffset = i * mesh.VertexSize;
+                for (var j = 0; j < weights.Count && j < Animation.Bone.MaxNesting; ++j)
+                {
+                    var weight = weights[j];
+                    var boneIdOffset = vertexOffset + mesh.BoneIdOffset + j;
+                    var boneWeightOffset = vertexOffset + mesh.BoneWeightOffset + j;
+                    vertexData[boneIdOffset] = weight.BoneId;
+                    vertexData[boneWeightOffset] = weight.Weight;
                 }
             }
         }
@@ -108,6 +140,39 @@ namespace YaEngine.Import
             }
 
             return indices;
+        }
+
+        private static unsafe BoneMapping GetBoneMapping(ImportMesh* pMesh)
+        {
+            var boneCount = (int) pMesh->MNumBones;
+            var bones = new Dictionary<string, Animation.Bone>(boneCount);
+            var weights = new Dictionary<uint, List<BoneWeight>>((int)pMesh->MNumVertices);
+            for (var i = 0; i < boneCount; ++i)
+            {
+                var bone = pMesh->MBones[i];
+                string name = bone->MName;
+                if (!bones.TryGetValue(name, out var extractedBone))
+                {
+                    extractedBone = new Animation.Bone(bones.Count, bone->MOffsetMatrix);
+                    bones.Add(name, extractedBone);
+                }
+                
+                var id = extractedBone.Id;
+                var boneWeights = bone->MWeights;
+                var weightsCount = bone->MNumWeights;
+                for (var j = 0; j < weightsCount; ++j)
+                {
+                    var vertexWeight = boneWeights[j];
+                    if (!weights.TryGetValue(vertexWeight.MVertexId, out var vertexWeights))
+                    {
+                        vertexWeights = new List<BoneWeight>(Animation.Bone.MaxNesting);
+                        weights[vertexWeight.MVertexId] = vertexWeights;
+                    }
+                    vertexWeights.Add(new BoneWeight(id, vertexWeight.MWeight));
+                }
+            }
+
+            return new BoneMapping(bones, weights);
         }
 
         private static unsafe GCHandle MarshalToPinnedAscii(string str, out byte* pointer)
