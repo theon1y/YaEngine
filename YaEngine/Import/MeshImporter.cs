@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
-using System.Text;
 using Silk.NET.Assimp;
+using Bone = YaEngine.Animation.Bone;
 using ImportMesh = Silk.NET.Assimp.Mesh;
 using Mesh = YaEngine.Render.Mesh;
 
@@ -10,36 +9,16 @@ namespace YaEngine.Import
 {
     public class MeshImporter
     {
-        private readonly Assimp assimp = Assimp.GetApi();
-        private readonly IMeshImporterPart[] meshImporters =
+        private static readonly BoneWeight DefaultWeight = new(-1, 0f);
+        
+        public Mesh[] Import(string filePath)
         {
-            new PositionImporter(),
-            new Uv0Importer(),
-            new NormalImporter(),
-            new ColorImporter(),
-            new Uv1Importer()
-        };
-
-        public unsafe Mesh[] Import(string filePath)
-        {
-            var filePathGcHandle = MarshalToPinnedAscii(filePath, out var filePathPointer);
-            var scenePointer = assimp.ImportFile(filePathPointer, 0);
-            if (scenePointer == null)
-            {
-                var errorPointer = assimp.GetErrorString();
-                var error = Marshal.PtrToStringUTF8(new IntPtr(errorPointer));
-                throw new Exception($"Could not import {filePath}:\n{error}");
-            }
-
-            var result = ParseScene(scenePointer);
-            
-            assimp.ReleaseImport(scenePointer);
-            filePathGcHandle.Free();
-            return result;
+            return ImportUtils.ImportFromFile(filePath, ParseScene);
         }
         
-        private unsafe Mesh[] ParseScene(Scene* pScene)
+        private unsafe Mesh[] ParseScene(IntPtr scenePointer)
         {
+            var pScene = (Scene*) scenePointer;
             var n = pScene->MNumMeshes;
             var result = new Mesh[n];
             for (var i = 0; i < n; ++i)
@@ -50,7 +29,7 @@ namespace YaEngine.Import
                 var newMesh = new Mesh();
                 result[i] = newMesh;
 
-                var boneMapping = GetBoneMapping(pMesh);
+                var boneMapping = ImportUtils.GetBoneMapping(pMesh);
                 
                 var vertexSize = CalculateVertexSizeAndWriteOffsets(pMesh, newMesh, boneMapping);
                 newMesh.VertexSize = (uint) vertexSize;
@@ -68,10 +47,10 @@ namespace YaEngine.Import
             return result;
         }
 
-        private unsafe int CalculateVertexSizeAndWriteOffsets(ImportMesh* pMesh, Mesh newMesh, BoneMapping boneMapping)
+        private static unsafe int CalculateVertexSizeAndWriteOffsets(ImportMesh* pMesh, Mesh newMesh, BoneMapping boneMapping)
         {
             var vertexSize = 0;
-            foreach (var importer in meshImporters)
+            foreach (var importer in MeshImporterParts.MeshImporters)
             {
                 vertexSize = importer.TryAppendSize(pMesh, newMesh, vertexSize);
             }
@@ -79,19 +58,19 @@ namespace YaEngine.Import
             if (boneMapping.Weights.Count <= 0) return vertexSize;
             
             newMesh.BoneIdOffset = vertexSize;
-            vertexSize += Animation.Bone.MaxNesting;
+            vertexSize += Bone.MaxNesting;
             newMesh.BoneWeightOffset = vertexSize;
-            vertexSize += Animation.Bone.MaxNesting;
+            vertexSize += Bone.MaxNesting;
 
             return vertexSize;
         }
 
-        private unsafe void WriteVertexData(uint verticesCount, int vertexSize, ImportMesh* pMesh, float[] vertexData)
+        private static unsafe void WriteVertexData(uint verticesCount, int vertexSize, ImportMesh* pMesh, float[] vertexData)
         {
             for (var i = 0; i < verticesCount; ++i)
             {
                 var offset = vertexSize * i;
-                foreach (var importer in meshImporters)
+                foreach (var importer in MeshImporterParts.MeshImporters)
                 {
                     offset = importer.TryCopyTo(pMesh, i, vertexData, offset);
                 }
@@ -106,11 +85,11 @@ namespace YaEngine.Import
                 if (!boneWeights.TryGetValue(i, out var weights)) continue;
 
                 var vertexOffset = i * mesh.VertexSize;
-                for (var j = 0; j < weights.Count && j < Animation.Bone.MaxNesting; ++j)
+                for (var j = 0; j < Bone.MaxNesting; ++j)
                 {
-                    var weight = weights[j];
                     var boneIdOffset = vertexOffset + mesh.BoneIdOffset + j;
                     var boneWeightOffset = vertexOffset + mesh.BoneWeightOffset + j;
+                    var weight = weights.Count > j ? weights[j] : DefaultWeight;
                     vertexData[boneIdOffset] = weight.BoneId;
                     vertexData[boneWeightOffset] = weight.Weight;
                 }
@@ -140,48 +119,6 @@ namespace YaEngine.Import
             }
 
             return indices;
-        }
-
-        private static unsafe BoneMapping GetBoneMapping(ImportMesh* pMesh)
-        {
-            var boneCount = (int) pMesh->MNumBones;
-            var bones = new Dictionary<string, Animation.Bone>(boneCount);
-            var weights = new Dictionary<uint, List<BoneWeight>>((int)pMesh->MNumVertices);
-            for (var i = 0; i < boneCount; ++i)
-            {
-                var bone = pMesh->MBones[i];
-                string name = bone->MName;
-                if (!bones.TryGetValue(name, out var extractedBone))
-                {
-                    extractedBone = new Animation.Bone(bones.Count, bone->MOffsetMatrix);
-                    bones.Add(name, extractedBone);
-                }
-                
-                var id = extractedBone.Id;
-                var boneWeights = bone->MWeights;
-                var weightsCount = bone->MNumWeights;
-                for (var j = 0; j < weightsCount; ++j)
-                {
-                    var vertexWeight = boneWeights[j];
-                    if (!weights.TryGetValue(vertexWeight.MVertexId, out var vertexWeights))
-                    {
-                        vertexWeights = new List<BoneWeight>(Animation.Bone.MaxNesting);
-                        weights[vertexWeight.MVertexId] = vertexWeights;
-                    }
-                    vertexWeights.Add(new BoneWeight(id, vertexWeight.MWeight));
-                }
-            }
-
-            return new BoneMapping(bones, weights);
-        }
-
-        private static unsafe GCHandle MarshalToPinnedAscii(string str, out byte* pointer)
-        {
-            var ascii = Encoding.ASCII.GetBytes(str);
-            var pinnedArray = GCHandle.Alloc(ascii, GCHandleType.Pinned);
-            var intPtr = pinnedArray.AddrOfPinnedObject();
-            pointer = (byte*) intPtr.ToPointer();
-            return pinnedArray;
         }
     }
 }

@@ -54,7 +54,7 @@ namespace YaEngine.Render
             PointIfPresent(renderer, "vUv1", 2, mesh.Uv1Offset);
             PointIfPresent(renderer, "vNormal", 3, mesh.NormalOffset);
             PointIfPresent(renderer, "vBoneWeights", Bone.MaxNesting, mesh.BoneWeightOffset);
-            PointIfPresent(renderer, "vBoneIds", Bone.MaxNesting, mesh.BoneIdOffset, VertexAttribPointerType.Int);
+            PointIfPresent(renderer, "vBoneIds", Bone.MaxNesting, mesh.BoneIdOffset);
         }
 
         private static void BindBuffers(GL gl, Renderer renderer, Mesh mesh)
@@ -105,9 +105,8 @@ namespace YaEngine.Render
         private static void PointIfPresent(Renderer renderer, string attributeName, int attributeSize,
             int attributeOffset, VertexAttribPointerType type = VertexAttribPointerType.Float)
         {
-            if (!renderer.Material.Shader.TryGetAttributeLocation(attributeName, out var location)) return;
-            
             if (attributeOffset < 0) return;
+            if (!renderer.Material.Shader.TryGetAttributeLocation(attributeName, out var location)) return;
             
             renderer.Vao.VertexAttributePointer((uint)location, attributeSize, type,
                 renderer.Mesh.VertexSize, attributeOffset);

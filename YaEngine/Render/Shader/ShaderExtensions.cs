@@ -88,5 +88,10 @@ namespace YaEngine.Render
                 gl.UniformMatrix4(location, 1, false, (float*) &value);
             }
         }
+
+        public static void SetUniform(this Shader shader, GL gl, string name, Matrix4x4[] value)
+        {
+            
+        }
     }
 }

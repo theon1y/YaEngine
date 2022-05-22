@@ -1,7 +1,11 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using Silk.NET.Maths;
 using Silk.NET.OpenGL;
 using YaEcs;
+using YaEngine.Animation;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Render.OpenGL;
@@ -42,7 +46,7 @@ namespace YaEngine.Render
             {
                 if (!world.TryGetComponent(cameraEntity, out Camera camera)) continue;
                 if (!world.TryGetComponent(cameraEntity, out Transform cameraTransform)) continue;
-                
+
                 var windowSize = application.Instance.Size;
                 var aspectRatio = windowSize.X / (float) windowSize.Y;
                 var fov = camera.Fov.ToRadians();
@@ -50,14 +54,18 @@ namespace YaEngine.Render
                 var view = Matrix4x4.CreateLookAt(cameraTransform.Position, cameraTransform.Position + forward,
                     Vector3.UnitY);
                 var projection = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspectRatio, 0.1f, 100f);
-                //var projection = Matrix4x4.CreateOrthographic(windowSize.X, windowSize.Y, 0.1f, 100f);
                 world.ForEach((Entity _, Renderer renderer, Transform rendererTransform) =>
-                    Render(renderer, rendererTransform, view, projection, gl, ambientColor, spotlightColor, spotlightPosition));
+                {
+                    world.TryGetComponent(_, out Animator animator);
+                    Render(renderer, rendererTransform, view, projection, gl, ambientColor, spotlightColor,
+                        spotlightPosition, animator?.BoneMatrices);
+                });
             }
         }
 
         private void Render(Renderer renderer, Transform rendererTransform, Matrix4x4 view, Matrix4x4 projection,
-            GL gl, Vector4 ambientColor, Vector4 spotlightColor, Vector3 spotlightPosition)
+            GL gl, Vector4 ambientColor, Vector4 spotlightColor, Vector3 spotlightPosition,
+            Matrix4x4[]? boneMatrices)
         {
             renderer.Vao.Bind();
             renderer.Ebo.Bind();
@@ -83,6 +91,12 @@ namespace YaEngine.Render
             {
                 renderer.Material.Texture.Bind();
                 gl.Uniform1(textureLocation, 0);
+            }
+
+            if (boneMatrices != null && shader.TryGetUniformLocation("uFinalBoneMatrices", out var boneMatricesLocation))
+            {
+                var span = MemoryMarshal.Cast<Matrix4x4, float>(boneMatrices.AsSpan());
+                gl.UniformMatrix4(boneMatricesLocation, (uint) boneMatrices.Length, false, span);
             }
 
             gl.DrawElements(PrimitiveType.Triangles, (uint) renderer.Mesh.Indexes.Length, DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>());

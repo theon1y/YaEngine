@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
-using Silk.NET.OpenGL;
 using YaEcs;
+using YaEngine.Animation;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Import;
@@ -18,10 +20,14 @@ namespace YaEngine
         public int Priority => InitializePriorities.Third;
 
         private readonly MeshImporter meshImporter;
+        private readonly AnimationImporter animationImporter;
+        private readonly AvatarImporter avatarImporter;
         
-        public BuildSceneSystem(MeshImporter meshImporter)
+        public BuildSceneSystem(MeshImporter meshImporter, AnimationImporter animationImporter, AvatarImporter avatarImporter)
         {
             this.meshImporter = meshImporter;
+            this.animationImporter = animationImporter;
+            this.avatarImporter = avatarImporter;
         }
         
         public Task ExecuteAsync(IWorld world)
@@ -78,6 +84,11 @@ namespace YaEngine
 
             var meshPath = "D:/Projects/project-v/Assets/Content/CharacterContent/Model/Human_Model.fbx";
             var meshes = meshImporter.Import(meshPath);
+            var avatar = avatarImporter.Import(meshPath);
+            var animations = ImportAnimations();
+            Console.WriteLine($"Imported animations: {string.Join(", ", animations.Select(x => x.Name))}");
+            var animator = new Animator(animations, avatar);
+            animator.Play(animations[0].Name);
             var meshEntity = world.Create(new Transform
                 {
                     Position = new Vector3(0f, 0f, 5f),
@@ -91,9 +102,16 @@ namespace YaEngine
                         Texture = charTexture
                     },
                     Mesh = meshes[0]
-                });
+                },
+                animator);
             
             return Task.CompletedTask;
+        }
+
+        private Animation.Animation[] ImportAnimations()
+        {
+            var animationsPath = "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Idle/idle/neutral_idle.fbx";
+            return animationImporter.Import(animationsPath);
         }
     }
 }

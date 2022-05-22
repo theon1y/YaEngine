@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using YaEcs;
+using YaEngine.Animation;
 using YaEngine.Core;
 using YaEngine.ImGui;
 using YaEngine.Input;
@@ -35,6 +36,7 @@ namespace YaEngine.Configuration
             return serviceCollection
                 .AddScoped<IUpdateSystem, InputSystem>()
                 .AddScoped<IUpdateSystem, RegisterCameraSystem>()
+                .AddScoped<IUpdateSystem, AnimatorUpdateSystem>()
                 .AddScoped<IRenderSystem, RenderSystem>()
                 .AddScoped<IRenderSystem, ImGuiSystem>();
         }

@@ -13,21 +13,48 @@ namespace YaEngine
 layout (location = 0) in vec3 vPos;
 layout (location = 2) in vec2 vUv;
 layout (location = 4) in vec3 vNormal;
+layout (location = 5) in vec4 vBoneWeights;
+layout (location = 6) in vec4 vBoneIds;
 
 uniform mat4 uModel;
 uniform mat4 uView;
 uniform mat4 uProjection;
 
+const int MAX_BONES = 64;
+const int MAX_NESTING = 4;
+uniform mat4 uFinalBoneMatrices[MAX_BONES];
+
 out vec3 fPos;
 out vec2 fUv;
 out vec3 fNormal;
+out vec4 fColor;
 
 void main()
 {
-    gl_Position = uProjection * uView * uModel * vec4(vPos, 1.0);
-    fPos = vec3(uModel * vec4(vPos, 1.0));
+    vec4 totalPosition = vec4(0.0f);
+    vec3 totalNormal = vec3(0.0f);
+    for(int i = 0 ; i < MAX_NESTING ; i++)
+    {
+        int id = int(vBoneIds[i]);
+        if(id == -1) 
+            continue;
+        if(id >=MAX_BONES) 
+        {
+            totalPosition = vec4(vPos,1.0f);
+            break;
+        }
+        vec4 localPosition = uFinalBoneMatrices[id] * vec4(vPos,1.0f);
+        fColor[i] = vBoneWeights[i] * 0.5;
+        totalPosition += localPosition * vBoneWeights[i];
+        vec3 localNormal = mat3(uFinalBoneMatrices[id]) * vNormal;
+        totalNormal += localNormal * vBoneWeights[i];
+    }
+
+    gl_Position = uProjection * uView * uModel * totalPosition;
+    fNormal = mat3(transpose(inverse(uModel))) * totalNormal;
+
+    fPos = vec3(uModel * totalPosition);
     fUv = vUv;
-    fNormal = mat3(transpose(inverse(uModel))) * vNormal;
 }
 ";
 
@@ -37,6 +64,7 @@ void main()
 in vec2 fUv;
 in vec3 fNormal;
 in vec3 fPos;
+in vec4 fColor;
 
 uniform sampler2D uTexture0;
 uniform vec3 lightColor;

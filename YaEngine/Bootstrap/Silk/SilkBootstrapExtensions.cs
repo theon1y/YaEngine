@@ -33,6 +33,8 @@ namespace YaEngine.Bootstrap
                 })
                 .AddSilkBindings(configuration)
                 .AddSingleton<MeshImporter>()
+                .AddSingleton<AnimationImporter>()
+                .AddSingleton<AvatarImporter>()
                 .AddSingleton<SilkBootstrapper>();
         }
 
