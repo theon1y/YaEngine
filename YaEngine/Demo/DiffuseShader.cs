@@ -31,24 +31,15 @@ out vec4 fColor;
 
 void main()
 {
-    vec4 totalPosition = vec4(0.0f);
-    vec3 totalNormal = vec3(0.0f);
+    mat4 boneTransform = mat4(0.0f);
     for(int i = 0 ; i < MAX_NESTING ; i++)
     {
         int id = int(vBoneIds[i]);
-        if(id == -1) 
-            continue;
-        if(id >=MAX_BONES) 
-        {
-            totalPosition = vec4(vPos,1.0f);
-            break;
-        }
-        vec4 localPosition = uFinalBoneMatrices[id] * vec4(vPos,1.0f);
-        fColor[i] = vBoneWeights[i] * 0.5;
-        totalPosition += localPosition * vBoneWeights[i];
-        vec3 localNormal = mat3(uFinalBoneMatrices[id]) * vNormal;
-        totalNormal += localNormal * vBoneWeights[i];
+        boneTransform += uFinalBoneMatrices[id] * vBoneWeights[i];
     }
+
+    vec4 totalPosition = boneTransform * vec4(vPos,1.0f);
+    vec3 totalNormal = mat3(boneTransform) * vNormal;
 
     gl_Position = uProjection * uView * uModel * totalPosition;
     fNormal = mat3(transpose(inverse(uModel))) * totalNormal;
