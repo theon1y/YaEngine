@@ -31,16 +31,20 @@ namespace YaEngine
         
         public Task ExecuteAsync(IWorld world)
         {
-            var ambientColor = Color.LightBlue.ToVector4();
-            var spotlightColor = Color.White.ToVector4();
-            world.AddSingleton(new AmbientLight { Color = ambientColor });
+            var spotlightColor = Color.White.ToVector3();
 
             var texturePath =
                 "D:/Projects/project-v/Assets/Content/CharacterContent/Parts/Body/Textures/T_body1_base3_D.png";
             var textureName = Path.GetFileNameWithoutExtension(texturePath);
             var charTexture = new TextureInitializer(textureName, new FileTextureProvider(texturePath));
             
-            var cameraEntity = world.Create(new Camera { Fov = 110 }, new Transform());
+            var cameraEntity = world.Create(
+                new Camera { Fov = 45 },
+                new Transform
+                {
+                    Position = new Vector3(-4, 11, 15),
+                    Rotation = MathUtils.FromEulerDegrees(34, 160, 5)
+                });
 
             var lightParentTransform = new Transform
             {
@@ -59,7 +63,7 @@ namespace YaEngine
                         ShaderInitializer = ColorShader.Value,
                         Vector4Uniforms = new Dictionary<string, Vector4>
                         {
-                            ["uColor"] = spotlightColor
+                            ["uColor"] = new(spotlightColor, 1f)
                         }
                     },
                     Mesh = new Mesh
@@ -109,8 +113,27 @@ namespace YaEngine
 
         private Animation.Animation[] ImportAnimations()
         {
-            var animationsPath = "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Idle/idle/neutral_idle.fbx";
-            return animationImporter.Import(animationsPath);
+            var animationsPaths = new[]
+            {
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Idle/idle/neutral_idle.fbx",
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Hit/hit_react.fbx",
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Moving/run_slow.fbx",
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Moving/run_slow_weapon.fbx",
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Rifle/rifle_idle_free.fbx",
+                "D:/Projects/project-v/Assets/Content/CharacterContent/Animation/Rifle/rifle_shot.fbx",
+            };
+            return animationsPaths
+                .SelectMany(x =>
+                {
+                    var prefix = Path.GetFileNameWithoutExtension(x);
+                    var animations = animationImporter.Import(x);
+                    foreach (var animation in animations)
+                    {
+                        animation.Name = prefix + animation.Name;
+                    }
+                    return animations;
+                })
+                .ToArray();
         }
     }
 }

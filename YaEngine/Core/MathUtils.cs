@@ -78,6 +78,11 @@ namespace YaEngine.Core
             var eulerRadians = q.ToEuler();
             return eulerRadians * RadiansToDegrees;
         }
+
+        public static Quaternion FromEulerDegrees(float x, float y, float z)
+        {
+            return Quaternion.CreateFromYawPitchRoll(ToRadians(y), ToRadians(x), ToRadians(z));
+        }
         
         private static void NormalizeAngles(ref Vector3 angles)
         {

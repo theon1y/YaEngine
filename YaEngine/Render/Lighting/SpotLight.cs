@@ -5,6 +5,6 @@ namespace YaEngine.Render
 {
     public class SpotLight : IComponent
     {
-        public Vector4 Color;
+        public Vector3 Color;
     }
 }

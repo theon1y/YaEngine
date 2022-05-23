@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using YaEcs;
+using YaEngine.Animation;
 using YaEngine.Core;
 using YaEngine.ImGui;
 using YaEngine.Render;
@@ -21,6 +22,10 @@ namespace YaEngine
                 SameLine();
                 Text(entity.Id.ToString());
                 ShowTransform(transform);
+                if (world.TryGetComponent(entity, out Animator animator))
+                {
+                    ShowAnimator(animator);
+                }
             });
             
             End();
@@ -38,6 +43,18 @@ namespace YaEngine
             Text("Scale");
             SameLine();
             Text(transform.Scale.ToString());
+        }
+
+        private void ShowAnimator(Animator animator)
+        {
+            var animationName = animator.Animation?.Name ?? "none";
+            LabelText("Animator:", "");
+            Text("Animation: ");
+            SameLine();
+            Text(animationName);
+            Text("Time: ");
+            SameLine();
+            Text(animator.Time.ToString());
         }
     }
 }

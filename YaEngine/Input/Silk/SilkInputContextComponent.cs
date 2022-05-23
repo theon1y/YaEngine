@@ -12,7 +12,7 @@ namespace YaEngine.Input.Silk
             Instance = inputContext;
         }
         
-        public override bool IsKeyDown(Key key)
+        public override bool IsKeyPressed(Key key)
         {
             foreach (var keyboard in Instance.Keyboards)
             {
@@ -22,7 +22,7 @@ namespace YaEngine.Input.Silk
             return false;
         }
 
-        public override bool IsMouseButtonDown(MouseButton button)
+        public override bool IsMouseButtonPressed(MouseButton button)
         {
             foreach (var mouse in Instance.Mice)
             {

@@ -13,7 +13,7 @@ namespace YaEngine.Input
         {
             if (!world.TryGetSingleton(out InputContext input)) return;
 
-            if (input.IsKeyDown(Key.Escape) && world.TryGetSingleton(out Application application))
+            if (input.IsKeyPressed(Key.Escape) && world.TryGetSingleton(out Application application))
             {
                 application.Instance.Quit();
             }

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Silk.NET.Input.Extensions;
 using YaEcs;
 using YaEcs.Bootstrap;
 
@@ -17,6 +18,24 @@ namespace YaEngine.Input
                 input.MouseDelta = input.MousePosition - input.PrevMousePosition;
             }
             input.PrevMousePosition = input.MousePosition;
+
+            input.PressedKeys.Clear();
+            input.ReleasedKeys.Clear();
+            input.ReleasedKeys.UnionWith(input.HoldKeys);
+            input.HoldKeys.Clear();
+            foreach (var keyboard in input.Instance.Keyboards)
+            {
+                using var state = keyboard.CaptureState();
+                foreach (var key in state.GetPressedKeys())
+                {
+                    input.HoldKeys.Add(key);
+                }
+            }
+            var prevPressed = input.ReleasedKeys;
+            var currentPressed = input.HoldKeys;
+            input.PressedKeys.UnionWith(currentPressed);
+            input.PressedKeys.ExceptWith(prevPressed);
+            prevPressed.ExceptWith(currentPressed);
         }
     }
 }

@@ -45,19 +45,19 @@ namespace YaEngine
 
         private void AppendMovement(InputContext input, Key[] bindings, ref Vector2 value, float delta)
         {
-            if (input.IsKeyDown(bindings[0]))
+            if (input.IsKeyPressed(bindings[0]))
             {
                 value.X += delta;
             }
-            if (input.IsKeyDown(bindings[1]))
+            if (input.IsKeyPressed(bindings[1]))
             {
                 value.X -= delta;
             }
-            if (input.IsKeyDown(bindings[2]))
+            if (input.IsKeyPressed(bindings[2]))
             {
                 value.Y += delta;
             }
-            if (input.IsKeyDown(bindings[3]))
+            if (input.IsKeyPressed(bindings[3]))
             {
                 value.Y -= delta;
             }

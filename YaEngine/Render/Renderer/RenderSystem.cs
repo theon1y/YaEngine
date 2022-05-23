@@ -16,7 +16,7 @@ namespace YaEngine.Render
             if (!world.TryGetSingleton(out Application application)) return;
             if (!world.TryGetSingleton(out CameraRegistry cameraRegistry)) return;
 
-            var spotlightColor = Vector4.Zero;
+            var spotlightColor = Vector3.Zero;
             var spotlightPosition = Vector3.One;
             world.ForEach((Entity _, SpotLight spotLight, Transform transform) =>
             {
@@ -48,7 +48,7 @@ namespace YaEngine.Render
         }
 
         private void Render(Renderer renderer, Transform rendererTransform, Matrix4x4 view, Matrix4x4 projection,
-            RenderApi renderApi, Vector4 spotlightColor, Vector3 spotlightPosition, Matrix4x4[]? boneMatrices)
+            RenderApi renderApi, Vector3 spotlightColor, Vector3 spotlightPosition, Matrix4x4[]? boneMatrices)
         {
             renderer.Bind();
 
@@ -59,7 +59,7 @@ namespace YaEngine.Render
             shader.SetUniform("uView", view);
             shader.SetUniform("uProjection", projection);
 
-            shader.TrySetUniform("lightColor", new Vector3(spotlightColor.X, spotlightColor.Y, spotlightColor.Z));
+            shader.TrySetUniform("lightColor", spotlightColor);
             shader.TrySetUniform("lightPos", spotlightPosition);
             
             foreach (var uniform in renderer.Material.Vector4Uniforms)

@@ -9,34 +9,34 @@ namespace YaEngine.Animation
     {
         public const int MaxBones = 64;
         
-        private readonly Dictionary<string, Animation> animations;
+        public float Time;
+        public Animation? Animation;
+        public readonly Dictionary<string, Animation> Animations;
+        public readonly Matrix4x4[] BoneMatrices;
+        
         private readonly Matrix4x4[] worldMatrices;
         private readonly Avatar avatar;
-        private float time;
-        private Animation? animation;
         
         public Animator(IEnumerable<Animation> animations, Avatar avatar)
         {
-            this.animations = animations.ToDictionary(x => x.Name);
             this.avatar = avatar;
+            Animations = animations.ToDictionary(x => x.Name);
             BoneMatrices = new Matrix4x4[MaxBones];
             worldMatrices = new Matrix4x4[avatar.Hierarchy.Length];
         }
-        
-        public Matrix4x4[] BoneMatrices { get; }
 
         public void Play(string animationName)
         {
-            time = 0;
-            animation = animations.GetValueOrDefault(animationName);
+            Time = 0;
+            Animation = Animations.GetValueOrDefault(animationName);
         }
 
         public void Update(float deltaTime)
         {
-            if (animation == null) return;
+            if (Animation == null) return;
 
-            time = (time + animation.FramesPerSecond * deltaTime) % animation.Duration;
-            RecalculateBoneTransforms(avatar, animation, time, avatar.Bones, BoneMatrices, worldMatrices);
+            Time = (Time + Animation.FramesPerSecond * deltaTime) % Animation.Duration;
+            RecalculateBoneTransforms(avatar, Animation, Time, avatar.Bones, BoneMatrices, worldMatrices);
         }
 
         private static void RecalculateBoneTransforms(Avatar avatar, Animation animation, float time,
