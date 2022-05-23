@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace YaEngine.Configuration
+namespace YaEngine.Bootstrap
 {
     public static class ConfigurationExtensions
     {

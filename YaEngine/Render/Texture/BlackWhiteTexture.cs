@@ -27,9 +27,10 @@
             255, 255, 255, 255,
         };
 
-        public static Texture Value = new(nameof(BlackWhiteTexture), new ArrayTextureProvider(data, Width, Height)
-        {
-            Filter = TextureFilter.Nearest
-        });
+        public static TextureInitializer Value = new(nameof(BlackWhiteTexture),
+            new ArrayTextureProvider(data, Width, Height)
+            {
+                Filter = TextureFilter.Nearest
+            });
     }
 }

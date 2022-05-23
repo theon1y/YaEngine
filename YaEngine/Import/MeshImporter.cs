@@ -38,7 +38,6 @@ namespace YaEngine.Import
                 newMesh.Vertices = new float[vertexSize * verticesCount];
                 WriteVertexData(verticesCount, vertexSize, pMesh, newMesh.Vertices);
                 
-                newMesh.Bones = boneMapping.Bones;
                 WriteBoneData(newMesh, boneMapping.Weights);
 
                 newMesh.Indexes = GetIndexData(pMesh);

@@ -5,6 +5,7 @@ using YaEcs.Bootstrap;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Input;
+using YaEngine.Render;
 
 namespace YaEngine
 {

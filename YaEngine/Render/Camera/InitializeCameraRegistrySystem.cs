@@ -2,7 +2,7 @@
 using YaEcs;
 using YaEngine.Bootstrap;
 
-namespace YaEngine.Core
+namespace YaEngine.Render
 {
     public class InitializeCameraRegistrySystem : IInitializeSystem
     {

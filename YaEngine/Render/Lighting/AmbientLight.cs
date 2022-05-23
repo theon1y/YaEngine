@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using YaEcs;
 
-namespace YaEngine.Core
+namespace YaEngine.Render
 {
     public class AmbientLight : IComponent
     {

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Numerics;
 using YaEcs;
 using YaEcs.Bootstrap;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
+using YaEngine.Render;
 
 namespace YaEngine
 {
@@ -19,7 +19,6 @@ namespace YaEngine
             const float size = 10;
             var sin = (float) Math.Sin(time.TimeSinceStartup * speed);
             var sin2 = (float) Math.Sin(time.TimeSinceStartup * speed * 2);
-            var cos = (float) Math.Cos(time.TimeSinceStartup * speed);
             var cos2 = (float) Math.Cos(time.TimeSinceStartup * speed * 2);
             world.ForEach((Entity _, SpotLight _, Transform transform) =>
             {

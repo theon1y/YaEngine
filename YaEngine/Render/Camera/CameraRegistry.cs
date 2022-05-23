@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using YaEcs;
 
-namespace YaEngine.Core
+namespace YaEngine.Render
 {
     public class CameraRegistry : IComponent
     {

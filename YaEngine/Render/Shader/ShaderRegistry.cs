@@ -5,18 +5,22 @@ namespace YaEngine.Render
 {
     public class ShaderRegistry : IComponent
     {
-        private Dictionary<string, Shader> storage = new();
+        private readonly Dictionary<string, IShader> storage = new();
 
-        public void Add(Shader shader)
+        public void Add(IShader shader)
         {
             storage.Add(shader.Name, shader);
         }
 
-        public bool TryGet(string name, out Shader shader)
+        public bool TryGet<T>(string name, out T shader) where T : IShader
         {
-            return storage.TryGetValue(name, out shader);
+            shader = default;
+            if (!storage.TryGetValue(name, out var iShader) || iShader is not T tShader) return false;
+
+            shader = tShader;
+            return true;
         }
 
-        public IEnumerable<Shader> Shaders => storage.Values;
+        public IEnumerable<IShader> Shaders => storage.Values;
     }
 }

@@ -4,7 +4,7 @@ namespace YaEngine
 {
     public class ColorShader
     {
-        public static readonly Shader Value = new("ColorShader",
+        public static readonly ShaderInitializer Value = new("ColorShader",
             new StringShaderProvider(Vertex),
             new StringShaderProvider(Fragment));
         

@@ -5,7 +5,6 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using YaEcs;
 using YaEngine.Bootstrap.Silk;
-using YaEngine.Configuration;
 using YaEngine.Import;
 using YaEngine.Input.Silk;
 using YaEngine.Render.OpenGL;

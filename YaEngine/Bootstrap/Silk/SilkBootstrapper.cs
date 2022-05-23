@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Threading.Tasks;
 using Silk.NET.Windowing;
 using YaEcs;
-using YaEngine.Core;
-using YaEngine.ImGui;
 using YaEngine.Render;
 
 namespace YaEngine.Bootstrap
@@ -14,13 +11,16 @@ namespace YaEngine.Bootstrap
         private readonly IWorld modelWorld;
         private readonly IWorld renderWorld;
 
-        public SilkBootstrapper(IWindow window, IWorld modelWorld, IEnumerable<IRenderSystem> renderSystems,
+        public SilkBootstrapper(IWindow window, IWorld modelWorld,
+            IEnumerable<IInitializeRenderSystem> initializeRenderSystems,
+            IEnumerable<IRenderSystem> renderSystems,
+            IEnumerable<IDisposeRenderSystem> disposeRenderSystems,
             UpdateStepRegistry updateStepRegistry)
         {
             this.window = window;
             this.modelWorld = modelWorld;
             renderWorld = new World(updateStepRegistry,
-                new IInitializeSystem[0], renderSystems, new IDisposeSystem[0],
+                initializeRenderSystems, renderSystems, disposeRenderSystems,
                 modelWorld.Components, modelWorld.Entities);
             window.Load += InitializeWorld;
             window.Update += UpdateWorld;
@@ -28,10 +28,9 @@ namespace YaEngine.Bootstrap
             window.Closing += DisposeWorld;
         }
 
-        public async Task Run()
+        public void Run()
         {
-            await Task.Run(() => window.Run());
-            await modelWorld.DisposeAsync();
+            window.Run();
         }
 
         private void InitializeWorld()

@@ -1,4 +1,4 @@
-﻿namespace YaEngine.Configuration
+﻿namespace YaEngine.Bootstrap
 {
     public class WindowConfig
     {

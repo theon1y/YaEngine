@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Drawing;
+using System.Threading.Tasks;
 using Silk.NET.OpenGL;
 using Silk.NET.Windowing;
 using YaEcs;
@@ -19,7 +20,7 @@ namespace YaEngine.Render.OpenGL
         
         public Task ExecuteAsync(IWorld world)
         {
-            world.AddSingleton(new RenderApi { Value = GL.GetApi(window) });
+            world.AddSingleton<RenderApi>(new GlRenderApi(GL.GetApi(window), Color.Gray));
             return Task.CompletedTask;
         }
     }

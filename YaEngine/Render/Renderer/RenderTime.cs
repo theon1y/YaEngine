@@ -1,6 +1,6 @@
 ﻿using YaEcs;
 
-namespace YaEngine.Core
+namespace YaEngine.Render
 {
     public class RenderTime : IComponent
     {

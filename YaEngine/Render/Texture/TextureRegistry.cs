@@ -5,18 +5,22 @@ namespace YaEngine.Render
 {
     public class TextureRegistry : IComponent
     {
-        private Dictionary<string, Texture> storage = new();
+        private readonly Dictionary<string, ITexture> storage = new();
 
-        public void Add(Texture texture)
+        public void Add(ITexture texture)
         {
             storage.Add(texture.Name, texture);
         }
 
-        public bool TryGet(string name, out Texture texture)
+        public bool TryGet<T>(string name, out T texture) where T : GlTexture
         {
-            return storage.TryGetValue(name, out texture);
+            texture = default;
+            if (!storage.TryGetValue(name, out var iTexture) || iTexture is not T tTexture) return false;
+
+            texture = tTexture;
+            return true;
         }
 
-        public IEnumerable<Texture> Textures => storage.Values;
+        public IEnumerable<ITexture> Textures => storage.Values;
     }
 }

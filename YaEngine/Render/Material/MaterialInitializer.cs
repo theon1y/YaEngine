@@ -3,10 +3,10 @@ using System.Numerics;
 
 namespace YaEngine.Render
 {
-    public class Material
+    public class MaterialInitializer
     {
-        public IShader? Shader;
-        public ITexture? Texture;
+        public ShaderInitializer ShaderInitializer;
+        public TextureInitializer TextureInitializer;
         
         public Dictionary<string, Vector4> Vector4Uniforms = new();
     }

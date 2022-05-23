@@ -11,7 +11,6 @@ using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Import;
 using YaEngine.Render;
-using Texture = YaEngine.Render.Texture;
 
 namespace YaEngine
 {
@@ -39,7 +38,7 @@ namespace YaEngine
             var texturePath =
                 "D:/Projects/project-v/Assets/Content/CharacterContent/Parts/Body/Textures/T_body1_base3_D.png";
             var textureName = Path.GetFileNameWithoutExtension(texturePath);
-            var charTexture = new Texture(textureName, new FileTextureProvider(texturePath));
+            var charTexture = new TextureInitializer(textureName, new FileTextureProvider(texturePath));
             
             var cameraEntity = world.Create(new Camera { Fov = 110 }, new Transform());
 
@@ -53,11 +52,11 @@ namespace YaEngine
                     Parent = lightParentTransform
                 },
                 new SpotLight { Color = spotlightColor },
-                new InitializeRenderer
+                new RendererInitializer
                 {
-                    Material = new Material
+                    Material = new MaterialInitializer
                     {
-                        Shader = ColorShader.Value,
+                        ShaderInitializer = ColorShader.Value,
                         Vector4Uniforms = new Dictionary<string, Vector4>
                         {
                             ["uColor"] = spotlightColor
@@ -94,12 +93,12 @@ namespace YaEngine
                     Position = new Vector3(0f, 0f, 5f),
                     Scale = Vector3.One * 0.05f,
                 },
-                new InitializeRenderer
+                new RendererInitializer
                 {
-                    Material = new Material
+                    Material = new MaterialInitializer
                     {
-                        Shader = DiffuseShader.Value,
-                        Texture = charTexture
+                        ShaderInitializer = DiffuseAnimationShader.Value,
+                        TextureInitializer = charTexture
                     },
                     Mesh = meshes[0]
                 },

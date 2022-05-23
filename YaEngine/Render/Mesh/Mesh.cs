@@ -1,16 +1,12 @@
-﻿using System.Collections.Generic;
-using YaEngine.Animation;
-
-namespace YaEngine.Render
+﻿namespace YaEngine.Render
 {
     public class Mesh
     {
         public float[] Vertices;
         public uint[] Indexes;
-        public Dictionary<string, Bone> Bones;
         
         public uint VertexSize;
-        public int PositionOffset = -1;
+        public int PositionOffset;
         public int ColorOffset = -1;
         public int NormalOffset = -1;
         public int Uv0Offset = -1;

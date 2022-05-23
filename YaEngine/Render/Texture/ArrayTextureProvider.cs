@@ -1,32 +1,19 @@
-﻿using Silk.NET.OpenGL;
-
-namespace YaEngine.Render
+﻿namespace YaEngine.Render
 {
-    public class ArrayTextureProvider : TextureProviderBase
+    public class ArrayTextureProvider : TextureProvider
     {
         private readonly byte[] data;
-        private readonly uint width;
-        private readonly uint height;
 
         public ArrayTextureProvider(byte[] data, uint width, uint height)
         {
             this.data = data;
-            this.width = width;
-            this.height = height;
+            Width = width;
+            Height = height;
         }
 
-        public override void Load(GL gl)
+        public override byte[] Load()
         {
-            unsafe
-            {
-                fixed (void* d = &data[0])
-                {
-                    //Setting the data of a texture.
-                    gl.TexImage2D(TextureType, 0, (int) InternalFormat, width, height, 0,
-                        SourceFormat, SourcePixelType, d);
-                }
-            }
-            base.Load(gl);
+            return data;
         }
     }
 }

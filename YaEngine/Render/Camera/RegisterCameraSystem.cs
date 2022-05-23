@@ -1,7 +1,7 @@
 ﻿using YaEcs;
 using YaEcs.Bootstrap;
 
-namespace YaEngine.Core
+namespace YaEngine.Render
 {
     public class RegisterCameraSystem : IUpdateSystem
     {

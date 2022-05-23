@@ -5,7 +5,7 @@ using YaEcs;
 using YaEcs.MicrosoftDependencyInjectionExtensions;
 using YaEngine;
 using YaEngine.Bootstrap;
-using YaEngine.Configuration;
+using YaEngine.Bootstrap.OpenGL;
 using YaEngine.ImGui;
 using YaEngine.Input;
 
@@ -23,6 +23,7 @@ services
     .AddSilk(configuration)
     .AddEcs(configuration)
     .AddDefaultSystems()
+    .AddOpenGl()
     .AddScoped<IInitializeSystem, BuildSceneSystem>()
     .AddScoped<IUpdateSystem, MoveCameraSystem>()
     .AddScoped<IUpdateSystem, QuitSystem>()
@@ -31,4 +32,4 @@ services
     
 var serviceProvider = services.BuildServiceProvider();
 var bootstrapper = serviceProvider.GetService<SilkBootstrapper>();
-await bootstrapper.Run();
+bootstrapper.Run();

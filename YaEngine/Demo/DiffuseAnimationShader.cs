@@ -2,9 +2,9 @@
 
 namespace YaEngine
 {
-    public class DiffuseShader
+    public class DiffuseAnimationShader
     {
-        public static readonly Shader Value = new("DiffuseShader",
+        public static readonly ShaderInitializer Value = new(nameof(DiffuseAnimationShader),
             new StringShaderProvider(Vertex),
             new StringShaderProvider(Fragment));
         

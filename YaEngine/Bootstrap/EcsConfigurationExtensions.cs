@@ -5,9 +5,8 @@ using YaEngine.Core;
 using YaEngine.ImGui;
 using YaEngine.Input;
 using YaEngine.Render;
-using YaEngine.Render.OpenGL;
 
-namespace YaEngine.Configuration
+namespace YaEngine.Bootstrap
 {
     public static class EcsConfigurationExtensions
     {
@@ -26,7 +25,6 @@ namespace YaEngine.Configuration
                 .AddScoped<IInitializeSystem, InitializeTimeSystem>()
                 .AddScoped<IInitializeSystem, InitializeShadersSystem>()
                 .AddScoped<IInitializeSystem, InitializeTexturesSystem>()
-                .AddScoped<IInitializeSystem, InitializeRenderersSystem>()
                 .AddScoped<IInitializeSystem, InitializeImGuiSystem>()
                 .AddScoped<IInitializeSystem, InitializeCameraRegistrySystem>();
         }
@@ -46,8 +44,6 @@ namespace YaEngine.Configuration
             return serviceCollection
                 .AddScoped<IDisposeSystem, DisposeShadersSystem>()
                 .AddScoped<IDisposeSystem, DisposeTextureSystem>()
-                .AddScoped<IDisposeSystem, DisposeRenderersSystem>()
-                .AddScoped<IDisposeSystem, DisposeRenderApiSystem>()
                 .AddScoped<IDisposeSystem, DisposeImGuiSystem>()
                 .AddScoped<IDisposeSystem, DisposeInputSystem>();
         }
