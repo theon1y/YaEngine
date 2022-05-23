@@ -67,8 +67,7 @@ namespace YaEngine
         {
             var rotationEulers = current.ToEulerDegrees();
             rotationEulers.Y -= offset.X;
-            var x = MathUtils.NormalizeAngleDegrees(rotationEulers.X + offset.Y * 2);
-            rotationEulers.X = (x is > 90 and < 270) ? 90f : x;
+            rotationEulers.X += offset.Y * 2;
 
             var (pitch, yaw, roll) = rotationEulers.ToRadians().NormalizeAngles().Deconstruct();
             return Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll);

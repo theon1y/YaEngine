@@ -2,8 +2,9 @@
 using YaEcs;
 using YaEcs.Bootstrap;
 using YaEngine.Bootstrap;
+using YaEngine.Input;
 
-namespace YaEngine.Input
+namespace YaEngine
 {
     public class QuitSystem : IUpdateSystem
     {

@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Threading.Tasks;
 using YaEcs;
 using YaEngine.Animation;
+using YaEngine.Audio;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Import;
@@ -43,7 +44,7 @@ namespace YaEngine
                 new Transform
                 {
                     Position = new Vector3(-4, 11, 15),
-                    Rotation = MathUtils.FromEulerDegrees(34, 160, 5)
+                    Rotation = MathUtils.FromEulerDegrees(34, 160, 0)
                 });
 
             var lightParentTransform = new Transform
@@ -107,6 +108,12 @@ namespace YaEngine
                     Mesh = meshes[0]
                 },
                 animator);
+
+            var musicEntity = world.Create(new Transform(), new Music(),
+                new AudioInitializer
+                {
+                    AudioProvider = new RiffWaveAudioProvider("D:/Projects/project-v/fmod-audio/Assets/music/abandoned_village_1_120.wav")
+                });
             
             return Task.CompletedTask;
         }

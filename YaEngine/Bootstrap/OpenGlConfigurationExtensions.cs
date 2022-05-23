@@ -2,7 +2,7 @@
 using YaEcs;
 using YaEngine.Render.OpenGL;
 
-namespace YaEngine.Bootstrap.OpenGL
+namespace YaEngine.Bootstrap
 {
     public static class OpenGlConfigurationExtensions
     {

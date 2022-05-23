@@ -5,9 +5,7 @@ using YaEcs;
 using YaEcs.MicrosoftDependencyInjectionExtensions;
 using YaEngine;
 using YaEngine.Bootstrap;
-using YaEngine.Bootstrap.OpenGL;
 using YaEngine.ImGui;
-using YaEngine.Input;
 
 var configurationBuilder = new ConfigurationBuilder();
 configurationBuilder.AddInMemoryCollection(new Dictionary<string, string>()
@@ -24,7 +22,9 @@ services
     .AddEcs(configuration)
     .AddDefaultSystems()
     .AddOpenGl()
+    .AddOpenAl()
     .AddScoped<IInitializeSystem, BuildSceneSystem>()
+    .AddScoped<IUpdateSystem, EnableMusicSystem>()
     .AddScoped<IUpdateSystem, SwitchAnimationsSystem>()
     .AddScoped<IUpdateSystem, MoveCameraSystem>()
     .AddScoped<IUpdateSystem, QuitSystem>()
