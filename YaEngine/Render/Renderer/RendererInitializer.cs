@@ -6,5 +6,7 @@ namespace YaEngine.Render
     {
         public Mesh Mesh;
         public MaterialInitializer Material;
+        public bool CullFace = true;
+        public Mesh? InstanceData;
     }
 }

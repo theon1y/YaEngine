@@ -24,6 +24,7 @@ services
     .AddOpenGl()
     .AddOpenAl()
     .AddScoped<IInitializeSystem, BuildSceneSystem>()
+    .AddScoped<IUpdateSystem, EnableEffectsSystem>()
     .AddScoped<IUpdateSystem, EnableMusicSystem>()
     .AddScoped<IUpdateSystem, SwitchAnimationsSystem>()
     .AddScoped<IUpdateSystem, MoveCameraSystem>()

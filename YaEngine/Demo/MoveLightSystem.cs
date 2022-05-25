@@ -1,7 +1,6 @@
 ﻿using System;
 using YaEcs;
 using YaEcs.Bootstrap;
-using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Render;
 

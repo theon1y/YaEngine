@@ -7,7 +7,7 @@ namespace YaEngine.Render
     {
         public IShader? Shader;
         public ITexture? Texture;
-        
+        public Blending Blending;
         public Dictionary<string, Vector4> Vector4Uniforms = new();
     }
 }

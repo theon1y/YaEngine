@@ -1,6 +1,7 @@
 ﻿using YaEcs;
 using YaEcs.Bootstrap;
 using YaEngine.Bootstrap;
+using YaEngine.Core;
 
 namespace YaEngine.Animation
 {

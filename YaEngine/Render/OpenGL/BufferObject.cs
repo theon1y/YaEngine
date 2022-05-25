@@ -10,22 +10,24 @@ namespace YaEngine.Render.OpenGL
         private readonly BufferTargetARB bufferType;
         private readonly GL gl;
 
-        public unsafe BufferObject(GL gl, Span<TDataType> data, BufferTargetARB bufferType, BufferUsageARB usageHint)
+        public BufferObject(GL gl, Span<TDataType> data, BufferTargetARB bufferType, BufferUsageARB usageHint)
         {
             this.gl = gl;
             this.bufferType = bufferType;
 
-            handle = this.gl.GenBuffer();
+            handle = gl.GenBuffer();
             Bind();
-            fixed (void* d = data)
-            {
-                this.gl.BufferData(bufferType, (nuint) (data.Length * sizeof(TDataType)), d, usageHint);
-            }
+            gl.BufferData<TDataType>(bufferType, data, usageHint);
         }
 
         public void Bind()
         {
             gl.BindBuffer(bufferType, handle);
+        }
+
+        public void Update(Span<TDataType> data)
+        {
+            gl.BufferSubData<TDataType>(bufferType, 0, data);
         }
 
         public void Dispose()

@@ -1,5 +1,6 @@
 ﻿using YaEcs;
 using YaEngine.Bootstrap;
+using YaEngine.Core;
 using YaEngine.Render;
 
 namespace YaEngine.ImGui

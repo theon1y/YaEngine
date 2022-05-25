@@ -1,6 +1,6 @@
 ﻿using YaEcs;
 
-namespace YaEngine.Bootstrap
+namespace YaEngine.Core
 {
     public class Time : IComponent
     {

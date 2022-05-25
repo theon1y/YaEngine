@@ -112,5 +112,10 @@ namespace YaEngine.Core
             while (angle < 0) angle += 360;
             return angle;
         }
+
+        public static float Interpolate(float a, float b, float t)
+        {
+            return a * t + b * (1 - t);
+        }
     }
 }

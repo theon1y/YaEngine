@@ -8,5 +8,7 @@ namespace YaEngine.Render
         public Color ClearColor { get; set; }
         public abstract void Clear();
         public abstract void Draw(Renderer renderer);
+        public abstract void PrepareOpaqueRender();
+        public abstract void PrepareTransparentRender();
     }
 }

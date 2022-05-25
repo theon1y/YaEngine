@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Silk.NET.Assimp;
+using YaEngine.Render;
 using Bone = YaEngine.Animation.Bone;
 using ImportMesh = Silk.NET.Assimp.Mesh;
 using Mesh = YaEngine.Render.Mesh;
@@ -51,14 +52,22 @@ namespace YaEngine.Import
             var vertexSize = 0;
             foreach (var importer in MeshImporterParts.MeshImporters)
             {
-                vertexSize = importer.TryAppendSize(pMesh, newMesh, vertexSize);
+                if (!importer.HasAttribute(pMesh)) continue;
+                
+                importer.AddAttribute(newMesh, vertexSize);
+                vertexSize += importer.Size;
             }
 
             if (boneMapping.Weights.Count <= 0) return vertexSize;
-            
-            newMesh.BoneIdOffset = vertexSize;
+
+            var idAttribute = MeshAttributes.BoneIds;
+            idAttribute.Offset = vertexSize;
+            newMesh.Attributes.Add(idAttribute);
             vertexSize += Bone.MaxNesting;
-            newMesh.BoneWeightOffset = vertexSize;
+
+            var weightAttribute = MeshAttributes.BoneWeights;
+            weightAttribute.Offset = vertexSize;
+            newMesh.Attributes.Add(weightAttribute);
             vertexSize += Bone.MaxNesting;
 
             return vertexSize;
@@ -71,7 +80,10 @@ namespace YaEngine.Import
                 var offset = vertexSize * i;
                 foreach (var importer in MeshImporterParts.MeshImporters)
                 {
-                    offset = importer.TryCopyTo(pMesh, i, vertexData, offset);
+                    if (!importer.HasAttribute(pMesh)) continue;
+                    
+                    importer.CopyTo(pMesh, i, vertexData, offset);
+                    offset += importer.Size;
                 }
             }
         }
@@ -79,6 +91,8 @@ namespace YaEngine.Import
         private static void WriteBoneData(Mesh mesh, Dictionary<uint, List<BoneWeight>> boneWeights)
         {
             var vertexData = mesh.Vertices;
+            var idAttribute = mesh.Attributes.Find(x => x.Name == MeshAttributes.BoneIds.Name);
+            var weightAttribute = mesh.Attributes.Find(x => x.Name == MeshAttributes.BoneWeights.Name);
             for (uint i = 0; i < vertexData.Length; ++i)
             {
                 if (!boneWeights.TryGetValue(i, out var weights)) continue;
@@ -86,8 +100,8 @@ namespace YaEngine.Import
                 var vertexOffset = i * mesh.VertexSize;
                 for (var j = 0; j < Bone.MaxNesting; ++j)
                 {
-                    var boneIdOffset = vertexOffset + mesh.BoneIdOffset + j;
-                    var boneWeightOffset = vertexOffset + mesh.BoneWeightOffset + j;
+                    var boneIdOffset = vertexOffset + idAttribute.Offset + j;
+                    var boneWeightOffset = vertexOffset + weightAttribute.Offset + j;
                     var weight = weights.Count > j ? weights[j] : DefaultWeight;
                     vertexData[boneIdOffset] = weight.BoneId;
                     vertexData[boneWeightOffset] = weight.Weight;

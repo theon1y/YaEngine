@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Silk.NET.OpenGL;
 using YaEcs;
-using YaEngine.Animation;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
 
@@ -48,38 +47,47 @@ namespace YaEngine.Render.OpenGL
             {
                 Material = new Material
                 {
+                    Blending = rendererInitializer.Material.Blending,
                     Vector4Uniforms = rendererInitializer.Material.Vector4Uniforms.Copy()
                 },
-                Mesh = mesh
+                Mesh = mesh,
+                CullFace = rendererInitializer.CullFace,
+                InstanceData = rendererInitializer.InstanceData
             };
             
             renderer.Material.Shader = LoadShader(shaderFactory, shaderRegistry, material.ShaderInitializer);
             renderer.Material.Texture = LoadTexture(textureFactory, textureRegistry, material.TextureInitializer);
 
-            BindBuffers(gl, renderer, mesh);
-            MapAttributes(renderer, mesh);
+            BindBuffers(gl, renderer);
 
             return renderer;
         }
 
-        private static void MapAttributes(GlRenderer renderer, Mesh mesh)
+        private static void BindBuffers(GL gl, GlRenderer renderer)
         {
-            PointIfPresent(renderer, "vPos", 3, mesh.PositionOffset);
-            PointIfPresent(renderer, "vColor", 4, mesh.ColorOffset);
-            PointIfPresent(renderer, "vUv", 2, mesh.Uv0Offset);
-            PointIfPresent(renderer, "vUv1", 2, mesh.Uv1Offset);
-            PointIfPresent(renderer, "vNormal", 3, mesh.NormalOffset);
-            PointIfPresent(renderer, "vBoneWeights", Bone.MaxNesting, mesh.BoneWeightOffset);
-            PointIfPresent(renderer, "vBoneIds", Bone.MaxNesting, mesh.BoneIdOffset);
+            renderer.Vao = new VertexArrayObject<float>(gl);
+            renderer.Ebo = new BufferObject<uint>(gl, renderer.Mesh.Indexes, BufferTargetARB.ElementArrayBuffer,
+                BufferUsageARB.StaticDraw);
+            renderer.Vbo = new BufferObject<float>(gl, renderer.Mesh.Vertices, BufferTargetARB.ArrayBuffer,
+                BufferUsageARB.StaticDraw);
+            BindAttributes(renderer.Material.Shader, renderer.Mesh, renderer.Vao, renderer.Vbo, 0);
+            if (renderer.InstanceData == null) return;
+            
+            renderer.InstanceVbo = new BufferObject<float>(gl, renderer.InstanceData.Vertices, BufferTargetARB.ArrayBuffer,
+                BufferUsageARB.StreamDraw);   
+            BindAttributes(renderer.Material.Shader, renderer.InstanceData, renderer.Vao, renderer.InstanceVbo, 1);
         }
 
-        private static void BindBuffers(GL gl, GlRenderer renderer, Mesh mesh)
+        private static void BindAttributes(IShader? shader, Mesh mesh, VertexArrayObject<float> vao,
+            BufferObject<float> vbo, uint divisor)
         {
-            renderer.Ebo = new BufferObject<uint>(gl, mesh.Indexes, BufferTargetARB.ElementArrayBuffer,
-                BufferUsageARB.StaticDraw);
-            renderer.Vbo = new BufferObject<float>(gl, mesh.Vertices, BufferTargetARB.ArrayBuffer,
-                BufferUsageARB.StaticDraw);
-            renderer.Vao = new VertexArrayObject<float, uint>(gl, renderer.Vbo, renderer.Ebo);
+            if (shader == null) throw new Exception("Shader is null");
+
+            vbo.Bind();
+            foreach (var attribute in mesh.Attributes)
+            {
+                PointIfPresent(vao, shader, attribute, mesh.VertexSize, divisor);
+            }
         }
 
         private static ITexture LoadTexture(ITextureFactory factory, TextureRegistry registry, TextureInitializer initializer)
@@ -110,14 +118,14 @@ namespace YaEngine.Render.OpenGL
             return newShader;
         }
 
-        private static void PointIfPresent(GlRenderer renderer, string attributeName, int attributeSize,
-            int attributeOffset, VertexAttribPointerType type = VertexAttribPointerType.Float)
+        private static void PointIfPresent<T>(VertexArrayObject<T> vao, IShader shader, MeshAttribute attribute,
+            uint vertexSize, uint divisor, VertexAttribPointerType type = VertexAttribPointerType.Float)
+            where T : unmanaged
         {
-            if (attributeOffset < 0) return;
-            if (!renderer.Material.Shader!.TryGetAttributeLocation(attributeName, out var location)) return;
-            
-            renderer.Vao.VertexAttributePointer((uint)location, attributeSize, type,
-                renderer.Mesh.VertexSize, attributeOffset);
+            if (attribute.Offset < 0) return;
+            if (!shader.TryGetAttributeLocation(attribute.Name, out var location)) return;
+
+            vao.VertexAttributePointer((uint) location, attribute.Size, type, vertexSize, attribute.Offset, divisor);
         }
     }
 }

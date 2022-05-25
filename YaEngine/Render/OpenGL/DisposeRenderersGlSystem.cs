@@ -14,6 +14,7 @@ namespace YaEngine.Render.OpenGL
                 glRenderer.Vbo.Dispose();
                 glRenderer.Ebo.Dispose();
                 glRenderer.Vao.Dispose();
+                glRenderer.InstanceVbo?.Dispose();
             });
             return Task.CompletedTask;
         }

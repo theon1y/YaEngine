@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Runtime.CompilerServices;
 using Silk.NET.OpenGL;
 
@@ -16,15 +17,58 @@ namespace YaEngine.Render.OpenGL
 
         public override void Clear()
         {
-            Gl.Enable(EnableCap.DepthTest);
+            Gl.Enable(GLEnum.DepthTest);
+            Gl.DepthMask(true);
             Gl.ClearColor(ClearColor);
             Gl.Clear((uint) (ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit));
         }
 
+        public override void PrepareOpaqueRender()
+        {
+            Gl.Disable(EnableCap.Blend);
+            Gl.DepthMask(true);
+        }
+
+        public override void PrepareTransparentRender()
+        {
+            Gl.Enable(EnableCap.Blend);
+            Gl.DepthMask(false);
+        }
+        
         public override void Draw(Renderer renderer)
         {
-            Gl.DrawElements(PrimitiveType.Triangles, (uint) renderer.Mesh.Indexes.Length,
-                DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>());
+            if (renderer.CullFace) Gl.Enable(EnableCap.CullFace);
+
+            SetBlending(renderer.Material.Blending);
+            if (renderer.InstanceCount > 0)
+            {
+                Gl.DrawElementsInstanced(PrimitiveType.Triangles, (uint)renderer.Mesh.Indexes.Length,
+                    DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>(), renderer.InstanceCount);
+            }
+            else
+            {
+                Gl.DrawElements(PrimitiveType.Triangles, (uint)renderer.Mesh.Indexes.Length,
+                    DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>());   
+            }
+            
+            Gl.Disable(EnableCap.CullFace);
+        }
+
+        private void SetBlending(Blending blending)
+        {
+            if (blending == Blending.Disabled) return;
+            
+            switch (blending)
+            {
+                case Blending.Multiply:
+                    Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+                    break;
+                case Blending.Additive:
+                    Gl.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.One);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(blending), blending, null);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using YaEngine.Core;
 using YaEngine.ImGui;
 using YaEngine.Input;
 using YaEngine.Render;
+using YaEngine.VFX.ParticleSystem;
 
 namespace YaEngine.Bootstrap
 {
@@ -26,7 +27,9 @@ namespace YaEngine.Bootstrap
                 .AddScoped<IInitializeSystem, InitializeShadersSystem>()
                 .AddScoped<IInitializeSystem, InitializeTexturesSystem>()
                 .AddScoped<IInitializeSystem, InitializeImGuiSystem>()
-                .AddScoped<IInitializeSystem, InitializeCameraRegistrySystem>();
+                .AddScoped<IInitializeSystem, InitializeCameraRegistrySystem>()
+                .AddScoped<IInitializeRenderSystem, InitializeParticlesSystem>()
+                .AddScoped<IInitializeRenderSystem, InitializeBuffersSystem>();
         }
         
         public static IServiceCollection AddDefaultUpdateSystems(this IServiceCollection serviceCollection)
@@ -35,6 +38,7 @@ namespace YaEngine.Bootstrap
                 .AddScoped<IUpdateSystem, InputSystem>()
                 .AddScoped<IUpdateSystem, RegisterCameraSystem>()
                 .AddScoped<IUpdateSystem, AnimatorUpdateSystem>()
+                .AddScoped<IUpdateSystem, ParticleSystem>()
                 .AddScoped<IRenderSystem, RenderSystem>()
                 .AddScoped<IRenderSystem, ImGuiSystem>();
         }

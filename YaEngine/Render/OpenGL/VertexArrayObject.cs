@@ -3,39 +3,37 @@ using Silk.NET.OpenGL;
 
 namespace YaEngine.Render.OpenGL
 {
-    public class VertexArrayObject<TVertexType, TIndexType> : IDisposable
+    public class VertexArrayObject<TVertexType> : IDisposable
         where TVertexType : unmanaged
-        where TIndexType : unmanaged
     {
-        private uint _handle;
-        private GL _gl;
+        private readonly uint handle;
+        private readonly GL gl;
 
-        public VertexArrayObject(GL gl, BufferObject<TVertexType> vbo, BufferObject<TIndexType> ebo)
+        public VertexArrayObject(GL gl)
         {
-            _gl = gl;
+            this.gl = gl;
 
-            _handle = _gl.GenVertexArray();
+            handle = gl.GenVertexArray();
             Bind();
-            vbo.Bind();
-            ebo.Bind();
         }
 
-        public unsafe void VertexAttributePointer(uint index, int count, VertexAttribPointerType type, uint vertexSize,
-            int offSet)
+        public unsafe void VertexAttributePointer(uint index, int size, VertexAttribPointerType type, uint vertexSize,
+            int offSet, uint divisor)
         {
-            _gl.VertexAttribPointer(index, count, type, false, vertexSize * (uint) sizeof(TVertexType),
+            gl.EnableVertexAttribArray(index);
+            gl.VertexAttribPointer(index, size, type, false, vertexSize * (uint) sizeof(TVertexType),
                 (void*) (offSet * sizeof(TVertexType)));
-            _gl.EnableVertexAttribArray(index);
+            gl.VertexAttribDivisor(index, divisor);
         }
 
         public void Bind()
         {
-            _gl.BindVertexArray(_handle);
+            gl.BindVertexArray(handle);
         }
 
         public void Dispose()
         {
-            _gl.DeleteVertexArray(_handle);
+            gl.DeleteVertexArray(handle);
         }
     }
 }

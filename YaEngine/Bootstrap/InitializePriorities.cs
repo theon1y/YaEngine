@@ -6,5 +6,6 @@
         public const int Second = 128;
         public const int Third = 256;
         public const int Fourth = 512;
+        public const int Fifth = 1024;
     }
 }

@@ -15,6 +15,7 @@ namespace YaEngine.Render
             if (!world.TryGetSingleton(out RenderApi renderApi)) return;
             if (!world.TryGetSingleton(out Application application)) return;
             if (!world.TryGetSingleton(out CameraRegistry cameraRegistry)) return;
+            if (!world.TryGetSingleton(out RenderBuffers buffers)) return;
 
             var spotlightColor = Vector3.Zero;
             var spotlightPosition = Vector3.One;
@@ -38,18 +39,52 @@ namespace YaEngine.Render
                 var view = Matrix4x4.CreateLookAt(cameraTransform.Position, cameraTransform.Position + forward,
                     Vector3.UnitY);
                 var projection = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspectRatio, 0.1f, 100f);
+                
+                buffers.OpaqueRenderQueue.Clear();
+                buffers.TransparentRenderQueue.Clear();
                 world.ForEach((Entity entity, Renderer renderer, Transform rendererTransform) =>
                 {
+                    if (!renderer.IsEnabled) return;
+                    
                     world.TryGetComponent(entity, out Animator animator);
-                    Render(renderer, rendererTransform, view, projection, renderApi, spotlightColor,
-                        spotlightPosition, animator?.BoneMatrices);
+                    var renderArguments = new RenderArguments
+                    {
+                        Renderer = renderer,
+                        RendererTransform = rendererTransform,
+                        Animator = animator
+                    };
+                    if (renderer.Material.Blending == Blending.Disabled)
+                    {
+                        buffers.OpaqueRenderQueue.Add(renderArguments);
+                    }
+                    else
+                    {
+                        buffers.TransparentRenderQueue.Add(renderArguments);
+                    }
                 });
+
+                //buffers.OpaqueRenderQueue.Sort(SortRenderers);                
+                renderApi.PrepareOpaqueRender();
+                foreach (var renderArguments in buffers.OpaqueRenderQueue)
+                {
+                    Render(renderArguments.Renderer, renderArguments.RendererTransform, view, projection, renderApi, spotlightColor,
+                        spotlightPosition, renderArguments.Animator?.BoneMatrices);
+                }
+
+                //buffers.TransparentRenderQueue.Sort(SortRenderers);
+                renderApi.PrepareTransparentRender();
+                foreach (var renderArguments in buffers.TransparentRenderQueue)
+                {
+                    Render(renderArguments.Renderer, renderArguments.RendererTransform, view, projection, renderApi, spotlightColor,
+                        spotlightPosition, renderArguments.Animator?.BoneMatrices);
+                }
             }
         }
 
-        private void Render(Renderer renderer, Transform rendererTransform, Matrix4x4 view, Matrix4x4 projection,
+        private static void Render(Renderer renderer, Transform rendererTransform, Matrix4x4 view, Matrix4x4 projection,
             RenderApi renderApi, Vector3 spotlightColor, Vector3 spotlightPosition, Matrix4x4[]? boneMatrices)
         {
+            renderer.Update();
             renderer.Bind();
 
             var shader = renderer.Material.Shader;
@@ -80,6 +115,11 @@ namespace YaEngine.Render
             }
             
             renderApi.Draw(renderer);
+        }
+
+        private static int SortRenderers(RenderArguments x, RenderArguments y)
+        {
+            return x.Renderer.Material.Blending - y.Renderer.Material.Blending;
         }
     }
 }

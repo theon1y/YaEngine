@@ -12,6 +12,11 @@ using YaEngine.Bootstrap;
 using YaEngine.Core;
 using YaEngine.Import;
 using YaEngine.Render;
+using YaEngine.VFX.ParticleSystem;
+using YaEngine.VFX.ParticleSystem.Modules;
+using YaEngine.VFX.ParticleSystem.Modules.Shapes;
+using YaEngine.VFX.ParticleSystem.Modules.Value;
+using YaEngine.VFX.ParticleSystem.Shaders;
 
 namespace YaEngine
 {
@@ -32,26 +37,108 @@ namespace YaEngine
         
         public Task ExecuteAsync(IWorld world)
         {
+            CreateCamera(world);
+            
             var spotlightColor = Color.White.ToVector3();
-
-            var texturePath =
+            CreateLight(world, spotlightColor);
+            
+            var charTexturePath =
                 "D:/Projects/project-v/Assets/Content/CharacterContent/Parts/Body/Textures/T_body1_base3_D.png";
+            var charTexture = GetTexture(charTexturePath);
+            CreateHuman(world, charTexture);
+            
+            CreateMusic(world);
+            CreateParticleSystem(world);
+
+            return Task.CompletedTask;
+        }
+
+        private static void CreateParticleSystem(IWorld world)
+        {
+            var particleTexturePath =
+                "D:/Projects/project-v/Assets/Locations/Location_Amusement_Part_1/Effects/DustMotesEffect/DustMoteParticle.png";
+            var particleTexture = GetTexture(particleTexturePath);
+            world.Create(new Transform { Position = new Vector3(-1f, 1f, 6f) }, 
+                new ParticleEffect
+            {
+                Material = new MaterialInitializer
+                {
+                    ShaderInitializer = BillboardParticleShader.Value,
+                    TextureInitializer = particleTexture,
+                    Blending = Blending.Additive
+                },
+                Mesh = Quad.Mesh,
+                MaxParticles = 20,
+                Modules = new List<IModule>
+                {
+                    new EmissionModule
+                    {
+                        Rate = 10f,
+                        Duration = 5,
+                        IsLooping = true,
+                        ParticleLifetime = new Vector2(1, 2),
+                        ParticleSpeed = new Vector2(1, 3)
+                    },
+                    new ShapeModule { Shape = new ConeShape(45) },
+                    new LifetimeModule(),
+                    new ColorModule { Provider = new InterpolateVector4(Color.Red.ToVector4(), Color.Transparent.ToVector4()) },
+                    new ScaleModule { Provider = new InterpolateVector3(Vector3.One, Vector3.One * 0.5f)  },
+                    new RotateModule { Provider = new Constant<Quaternion>(Quaternion.Identity) },
+                    new MoveModule(),
+                }
+            });
+        }
+
+        private static TextureInitializer GetTexture(string texturePath)
+        {
             var textureName = Path.GetFileNameWithoutExtension(texturePath);
             var charTexture = new TextureInitializer(textureName, new FileTextureProvider(texturePath));
-            
-            var cameraEntity = world.Create(
-                new Camera { Fov = 45 },
-                new Transform
-                {
-                    Position = new Vector3(-4, 11, 15),
-                    Rotation = MathUtils.FromEulerDegrees(34, 160, 0)
-                });
+            return charTexture;
+        }
 
+        private static void CreateMusic(IWorld world)
+        {
+            world.Create(new Music(),
+                new AudioInitializer
+                {
+                    AudioProvider =
+                        new RiffWaveAudioProvider("D:/Projects/project-v/fmod-audio/Assets/music/abandoned_village_1_120.wav")
+                });
+        }
+
+        private void CreateHuman(IWorld world, TextureInitializer? charTexture)
+        {
+            var meshPath = "D:/Projects/project-v/Assets/Content/CharacterContent/Model/Human_Model.fbx";
+            var meshes = meshImporter.Import(meshPath);
+            var avatar = avatarImporter.Import(meshPath);
+            var animations = ImportAnimations();
+            Console.WriteLine($"Imported animations: {string.Join(", ", animations.Select(x => x.Name))}");
+            var animator = new Animator(animations, avatar);
+            animator.Play(animations[0].Name);
+            world.Create(new Transform
+                {
+                    Position = new Vector3(0f, 0f, 5f),
+                    Scale = Vector3.One * 0.05f,
+                },
+                new RendererInitializer
+                {
+                    Material = new MaterialInitializer
+                    {
+                        ShaderInitializer = DiffuseAnimationShader.Value,
+                        TextureInitializer = charTexture
+                    },
+                    Mesh = meshes[0]
+                },
+                animator);
+        }
+
+        private static void CreateLight(IWorld world, Vector3 spotlightColor)
+        {
             var lightParentTransform = new Transform
             {
                 Position = new Vector3(0f, 5f, 5f),
             };
-            var lightEntity = world.Create(
+            world.Create(
                 new Transform
                 {
                     Parent = lightParentTransform
@@ -67,55 +154,20 @@ namespace YaEngine
                             ["uColor"] = new(spotlightColor, 1f)
                         }
                     },
-                    Mesh = new Mesh
-                    {
-                        Vertices = new[]
-                        {
-                            1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
-                            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-                            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
-                            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
-                        },
-                        Indexes = new uint[]
-                        {
-                            0, 1, 2,
-                            1, 3, 2
-                        },
-                        VertexSize = 5,
-                        Uv0Offset = 3,
-                    }
+                    Mesh = Quad.Mesh,
+                    CullFace = false
                 });
+        }
 
-            var meshPath = "D:/Projects/project-v/Assets/Content/CharacterContent/Model/Human_Model.fbx";
-            var meshes = meshImporter.Import(meshPath);
-            var avatar = avatarImporter.Import(meshPath);
-            var animations = ImportAnimations();
-            Console.WriteLine($"Imported animations: {string.Join(", ", animations.Select(x => x.Name))}");
-            var animator = new Animator(animations, avatar);
-            animator.Play(animations[0].Name);
-            var meshEntity = world.Create(new Transform
+        private static void CreateCamera(IWorld world)
+        {
+             world.Create(
+                new Camera { Fov = 45 },
+                new Transform
                 {
-                    Position = new Vector3(0f, 0f, 5f),
-                    Scale = Vector3.One * 0.05f,
-                },
-                new RendererInitializer
-                {
-                    Material = new MaterialInitializer
-                    {
-                        ShaderInitializer = DiffuseAnimationShader.Value,
-                        TextureInitializer = charTexture
-                    },
-                    Mesh = meshes[0]
-                },
-                animator);
-
-            var musicEntity = world.Create(new Transform(), new Music(),
-                new AudioInitializer
-                {
-                    AudioProvider = new RiffWaveAudioProvider("D:/Projects/project-v/fmod-audio/Assets/music/abandoned_village_1_120.wav")
+                    Position = new Vector3(-4, 11, 15),
+                    Rotation = MathUtils.FromEulerDegrees(34, 160, 0)
                 });
-            
-            return Task.CompletedTask;
         }
 
         private Animation.Animation[] ImportAnimations()

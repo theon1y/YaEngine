@@ -8,7 +8,7 @@
         
         private const string Vertex = @"
 #version 330 core
-layout (location = 0) in vec3 vPos;
+in vec3 vPos;
 
 uniform mat4 uModel;
 uniform mat4 uView;
