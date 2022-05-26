@@ -6,9 +6,10 @@ using YaEcs.MicrosoftDependencyInjectionExtensions;
 using YaEngine;
 using YaEngine.Bootstrap;
 using YaEngine.ImGui;
+using YaEngine.Physics;
 
 var configurationBuilder = new ConfigurationBuilder();
-configurationBuilder.AddInMemoryCollection(new Dictionary<string, string>()
+configurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
 {
     { "WindowConfig:Width", "1280" },
     { "WindowConfig:Height", "720" },
@@ -23,7 +24,12 @@ services
     .AddDefaultSystems()
     .AddOpenGl()
     .AddOpenAl()
-    .AddScoped<IInitializeSystem, BuildSceneSystem>()
+    .AddBulletPhysics()
+    // .AddScoped<IInitializeSystem, BuildSceneSystem>()
+    //.AddScoped<IPhysicsSystem, DebugDrawSystem>()
+    .AddScoped<IInitializeSystem, BuildPhysicsSceneSystem>()
+    .AddScoped<IPhysicsSystem, RestartPhysicsSystem>()
+    .AddScoped<IPhysicsSystem, ThrowCubeSystem>()
     .AddScoped<IUpdateSystem, EnableEffectsSystem>()
     .AddScoped<IUpdateSystem, EnableMusicSystem>()
     .AddScoped<IUpdateSystem, SwitchAnimationsSystem>()

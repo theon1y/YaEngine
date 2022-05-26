@@ -13,6 +13,8 @@ namespace YaEngine.Render
         public Mesh Mesh;
         public Material Material;
 
+        public Primitive PrimitiveType = Primitive.Triangle;
+
         public abstract void Bind();
         public abstract void Update();
     }

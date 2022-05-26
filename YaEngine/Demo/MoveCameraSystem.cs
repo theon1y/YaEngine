@@ -23,6 +23,11 @@ namespace YaEngine
             
             var rotate = input.MouseDelta * 0.01f;
             var speed = 2.5f * time.DeltaTime;
+            if (input.IsKeyPressed(Key.ShiftLeft))
+            {
+                speed *= 2;
+            }
+            
             var move = Vector2.Zero;
             AppendMovement(input, LookBindings, ref rotate, speed);
             AppendMovement(input, MoveBindings, ref move, speed);

@@ -117,5 +117,10 @@ namespace YaEngine.Core
         {
             return a * t + b * (1 - t);
         }
+
+        public static Vector3 GetScale(this Matrix4x4 m)
+        {
+            return new( m.M11, m.M22, m.M33);
+        }
     }
 }

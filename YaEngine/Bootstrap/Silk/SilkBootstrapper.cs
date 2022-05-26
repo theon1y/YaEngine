@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Silk.NET.Windowing;
 using YaEcs;
 using YaEngine.Core;
+using YaEngine.Physics;
 using YaEngine.Render;
 
 namespace YaEngine.Bootstrap
@@ -11,17 +13,25 @@ namespace YaEngine.Bootstrap
         private readonly IWindow window;
         private readonly IWorld modelWorld;
         private readonly IWorld renderWorld;
+        private readonly IWorld physicsWorld;
+        private bool IsClosing;
 
         public SilkBootstrapper(IWindow window, IWorld modelWorld,
             IEnumerable<IInitializeRenderSystem> initializeRenderSystems,
             IEnumerable<IRenderSystem> renderSystems,
             IEnumerable<IDisposeRenderSystem> disposeRenderSystems,
+            IEnumerable<IInitializePhysicsSystem> initializePhysicsSystems,
+            IEnumerable<IPhysicsSystem> physicsSystems,
+            IEnumerable<IDisposePhysicsSystem> disposePhysicsSystems,
             UpdateStepRegistry updateStepRegistry)
         {
             this.window = window;
             this.modelWorld = modelWorld;
             renderWorld = new World(updateStepRegistry,
                 initializeRenderSystems, renderSystems, disposeRenderSystems,
+                modelWorld.Components, modelWorld.Entities);
+            physicsWorld = new World(updateStepRegistry,
+                initializePhysicsSystems, physicsSystems, disposePhysicsSystems,
                 modelWorld.Components, modelWorld.Entities);
             window.Load += InitializeWorld;
             window.Update += UpdateWorld;
@@ -38,6 +48,7 @@ namespace YaEngine.Bootstrap
         {
             modelWorld.InitializeAsync().GetAwaiter().GetResult();
             renderWorld.InitializeAsync().GetAwaiter().GetResult();
+            physicsWorld.InitializeAsync().GetAwaiter().GetResult();
         }
 
         private void UpdateWorld(double deltaTime)
@@ -47,8 +58,15 @@ namespace YaEngine.Bootstrap
                 time.DeltaTime = (float) deltaTime;
                 time.TimeSinceStartup += deltaTime;
             }
-            
+
             modelWorld.Update();
+            if (IsClosing) return;
+
+            if (physicsWorld.TryGetSingleton(out PhysicsTime physicsTime))
+            {
+                physicsTime.DeltaTime = (float) deltaTime;
+            }
+            physicsWorld.Update();
         }
 
         private void RenderWorld(double deltaTime)
@@ -63,8 +81,10 @@ namespace YaEngine.Bootstrap
         
         private void DisposeWorld()
         {
-            modelWorld.DisposeAsync().GetAwaiter().GetResult();
+            IsClosing = true;
+            physicsWorld.DisposeAsync().GetAwaiter().GetResult();
             renderWorld.DisposeAsync().GetAwaiter().GetResult();
+            modelWorld.DisposeAsync().GetAwaiter().GetResult();
         }
     }
 }

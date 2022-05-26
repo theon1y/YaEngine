@@ -10,6 +10,7 @@ namespace YaEngine.Bootstrap
         public static IServiceCollection AddOpenGl(this IServiceCollection serviceCollection)
         {
             return serviceCollection
+                .AddScoped<IInitializeRenderSystem, InitializeGlFactoriesSystem>()
                 .AddScoped<IInitializeRenderSystem, InitializeGlRenderSystem>()
                 .AddScoped<IDisposeSystem, DisposeRenderersGlSystem>()
                 .AddScoped<IDisposeSystem, DisposeRenderApiGlSystem>();

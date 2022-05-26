@@ -13,32 +13,23 @@ namespace YaEngine.Render.OpenGL
         
         public Task ExecuteAsync(IWorld world)
         {
-            if (!world.TryGetSingleton(out RenderApi renderApi)) return Task.CompletedTask;
+            if (!world.TryGetSingleton(out RenderApi renderApi) || renderApi is not GlRenderApi glRenderApi) return Task.CompletedTask;
             if (!world.TryGetSingleton(out ShaderRegistry shaderRegistry)) return Task.CompletedTask;
             if (!world.TryGetSingleton(out TextureRegistry textureRegistry)) return Task.CompletedTask;
-            if (renderApi is not GlRenderApi glRenderApi)
-            {
-                throw new ArgumentException($"Unsupported render api {renderApi}");
-            }
-
-            var gl = glRenderApi.Gl;
-            var shaderFactory = new GlShaderFactory(gl);
-            world.AddSingleton<IShaderFactory>(shaderFactory);
-
-            var textureFactory = new GlTextureFactory(gl);
-            world.AddSingleton<ITextureFactory>(textureFactory);
+            if (!world.TryGetSingleton(out IShaderFactory shaderFactory)) return Task.CompletedTask;
+            if (!world.TryGetSingleton(out ITextureFactory textureFactory)) return Task.CompletedTask;
 
             world.ForEach((Entity entity, RendererInitializer initializeRenderer) =>
             {
                 var renderer = InitializeRenderer(shaderFactory, textureFactory, initializeRenderer, shaderRegistry,
-                    textureRegistry, gl);
+                    textureRegistry, glRenderApi.Gl);
                 world.AddComponent(entity, renderer);
             });
             
             return Task.CompletedTask;
         }
 
-        private static Renderer InitializeRenderer(IShaderFactory shaderFactory, ITextureFactory textureFactory,
+        public static Renderer InitializeRenderer(IShaderFactory shaderFactory, ITextureFactory textureFactory,
             RendererInitializer rendererInitializer, ShaderRegistry shaderRegistry, TextureRegistry textureRegistry, GL gl)
         {
             var material = rendererInitializer.Material;
@@ -59,11 +50,10 @@ namespace YaEngine.Render.OpenGL
             renderer.Material.Texture = LoadTexture(textureFactory, textureRegistry, material.TextureInitializer);
 
             BindBuffers(gl, renderer);
-
             return renderer;
         }
 
-        private static void BindBuffers(GL gl, GlRenderer renderer)
+        public static void BindBuffers(GL gl, GlRenderer renderer)
         {
             renderer.Vao = new VertexArrayObject<float>(gl);
             renderer.Ebo = new BufferObject<uint>(gl, renderer.Mesh.Indexes, BufferTargetARB.ElementArrayBuffer,
@@ -78,7 +68,7 @@ namespace YaEngine.Render.OpenGL
             BindAttributes(renderer.Material.Shader, renderer.InstanceData, renderer.Vao, renderer.InstanceVbo, 1);
         }
 
-        private static void BindAttributes(IShader? shader, Mesh mesh, VertexArrayObject<float> vao,
+        public static void BindAttributes(IShader? shader, Mesh mesh, VertexArrayObject<float> vao,
             BufferObject<float> vbo, uint divisor)
         {
             if (shader == null) throw new Exception("Shader is null");
@@ -90,7 +80,7 @@ namespace YaEngine.Render.OpenGL
             }
         }
 
-        private static ITexture LoadTexture(ITextureFactory factory, TextureRegistry registry, TextureInitializer initializer)
+        public static ITexture LoadTexture(ITextureFactory factory, TextureRegistry registry, TextureInitializer initializer)
         {
             if (initializer == null) return LoadTexture(factory, registry, BlackWhiteTexture.Value);
             
@@ -104,7 +94,7 @@ namespace YaEngine.Render.OpenGL
             return newTexture;
         }
 
-        private static IShader LoadShader(IShaderFactory factory, ShaderRegistry registry, ShaderInitializer initializer)
+        public static IShader LoadShader(IShaderFactory factory, ShaderRegistry registry, ShaderInitializer initializer)
         {
             if (initializer == null) return LoadShader(factory, registry, NoShader.Value);
             
@@ -118,7 +108,7 @@ namespace YaEngine.Render.OpenGL
             return newShader;
         }
 
-        private static void PointIfPresent<T>(VertexArrayObject<T> vao, IShader shader, MeshAttribute attribute,
+        public static void PointIfPresent<T>(VertexArrayObject<T> vao, IShader shader, MeshAttribute attribute,
             uint vertexSize, uint divisor, VertexAttribPointerType type = VertexAttribPointerType.Float)
             where T : unmanaged
         {

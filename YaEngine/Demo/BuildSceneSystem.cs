@@ -38,9 +38,7 @@ namespace YaEngine
         public Task ExecuteAsync(IWorld world)
         {
             CreateCamera(world);
-            
-            var spotlightColor = Color.White.ToVector3();
-            CreateLight(world, spotlightColor);
+            CreateLight(world, Color.White.ToVector3());
             
             var charTexturePath =
                 "D:/Projects/project-v/Assets/Content/CharacterContent/Parts/Body/Textures/T_body1_base3_D.png";
@@ -132,7 +130,7 @@ namespace YaEngine
                 animator);
         }
 
-        private static void CreateLight(IWorld world, Vector3 spotlightColor)
+        private static void CreateLight(IWorld world, Vector3 color)
         {
             var lightParentTransform = new Transform
             {
@@ -143,7 +141,7 @@ namespace YaEngine
                 {
                     Parent = lightParentTransform
                 },
-                new SpotLight { Color = spotlightColor },
+                new AmbientLight { Color = color },
                 new RendererInitializer
                 {
                     Material = new MaterialInitializer
@@ -151,7 +149,7 @@ namespace YaEngine
                         ShaderInitializer = ColorShader.Value,
                         Vector4Uniforms = new Dictionary<string, Vector4>
                         {
-                            ["uColor"] = new(spotlightColor, 1f)
+                            ["uColor"] = new(color, 1f)
                         }
                     },
                     Mesh = Quad.Mesh,

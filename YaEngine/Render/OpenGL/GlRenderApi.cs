@@ -38,20 +38,33 @@ namespace YaEngine.Render.OpenGL
         public override void Draw(Renderer renderer)
         {
             if (renderer.CullFace) Gl.Enable(EnableCap.CullFace);
-
+            
             SetBlending(renderer.Material.Blending);
+            var mode = GetRenderMode(renderer.PrimitiveType);
             if (renderer.InstanceCount > 0)
             {
-                Gl.DrawElementsInstanced(PrimitiveType.Triangles, (uint)renderer.Mesh.Indexes.Length,
+                Gl.DrawElementsInstanced(mode, (uint)renderer.Mesh.Indexes.Length,
                     DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>(), renderer.InstanceCount);
             }
             else
             {
-                Gl.DrawElements(PrimitiveType.Triangles, (uint)renderer.Mesh.Indexes.Length,
+                Gl.DrawElements(mode, (uint)renderer.Mesh.Indexes.Length,
                     DrawElementsType.UnsignedInt, Unsafe.NullRef<uint>());   
             }
             
             Gl.Disable(EnableCap.CullFace);
+        }
+
+        private static PrimitiveType GetRenderMode(Primitive primitive)
+        {
+            return primitive switch
+            {
+                Primitive.Triangle => PrimitiveType.Triangles,
+                Primitive.Quad => PrimitiveType.Quads,
+                Primitive.Line => PrimitiveType.Lines,
+                Primitive.Point => PrimitiveType.Points,
+                _ => throw new ArgumentOutOfRangeException(nameof(primitive), primitive, null)
+            };
         }
 
         private void SetBlending(Blending blending)
