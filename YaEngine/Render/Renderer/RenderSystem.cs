@@ -19,10 +19,10 @@ namespace YaEngine.Render
 
             var lightColor = Vector3.Zero;
             var lightDirection = Vector3.One;
-            world.ForEach((Entity _, AmbientLight spotLight, Transform transform) =>
+            world.ForEach((Entity _, AmbientLight light, Transform transform) =>
             {
-                lightColor = spotLight.Color;
-                lightDirection = transform.Position;
+                lightColor = light.Color;
+                lightDirection = Vector3.Normalize(transform.GetWorldPosition());
             });
 
             renderApi.Clear();

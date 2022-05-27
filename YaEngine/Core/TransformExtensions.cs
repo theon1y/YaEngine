@@ -21,6 +21,14 @@ namespace YaEngine.Core
             return Matrix4x4.Identity;
         }
 
+        public static Vector3 GetWorldPosition(this Transform transform)
+        {
+            if (transform.Parent == null) return transform.Position;
+
+            var worldMatrix = transform.GetWorldMatrix();
+            return worldMatrix.Translation;
+        }
+
         public static void SetWorldPosition(this Transform transform, Vector3 position)
         {
             if (transform.Parent == null)
