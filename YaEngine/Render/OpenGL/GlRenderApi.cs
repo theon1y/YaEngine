@@ -7,7 +7,7 @@ namespace YaEngine.Render.OpenGL
 {
     public class GlRenderApi : RenderApi
     {
-        internal readonly GL Gl;
+        public readonly GL Gl;
 
         public GlRenderApi(GL gl, Color clearColor)
         {
