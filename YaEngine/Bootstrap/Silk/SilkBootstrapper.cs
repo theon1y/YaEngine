@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System;
+using System.Collections.Generic;
 using Silk.NET.Windowing;
 using YaEcs;
 using YaEngine.Core;
@@ -53,9 +53,21 @@ namespace YaEngine.Bootstrap
 
         private void UpdateWorld(double deltaTime)
         {
+            try
+            {
+                UpdateWorlds((float) deltaTime);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+        }
+
+        private void UpdateWorlds(float deltaTime)
+        {
             if (modelWorld.TryGetSingleton(out Time time))
             {
-                time.DeltaTime = (float) deltaTime;
+                time.DeltaTime = deltaTime;
                 time.TimeSinceStartup += deltaTime;
             }
 
@@ -64,7 +76,7 @@ namespace YaEngine.Bootstrap
 
             if (physicsWorld.TryGetSingleton(out PhysicsTime physicsTime))
             {
-                physicsTime.DeltaTime = (float) deltaTime;
+                physicsTime.DeltaTime = deltaTime;
             }
             physicsWorld.Update();
         }

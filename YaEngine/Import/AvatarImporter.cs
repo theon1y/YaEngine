@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Silk.NET.Assimp;
 using YaEngine.Animation;
 using ImportMesh = Silk.NET.Assimp.Mesh;
@@ -9,15 +10,18 @@ namespace YaEngine.Import
 {
     public class AvatarImporter
     {
-        public Avatar Import(string filePath)
+        public Avatar Import(string filePath, ImportOptions options)
         {
-            return ImportUtils.ImportFromFile(filePath, ParseScene);
+            return ImportUtils.ImportFromFile(filePath, options, ParseScene);
         }
         
-        private unsafe Avatar ParseScene(IntPtr scenePointer)
+        public unsafe Avatar ParseScene(IntPtr scenePointer, ImportOptions options)
         {
             var pScene = (Scene*) scenePointer;
-            var hierarchy = ParseHierarchyRecursive(pScene->MRootNode, new List<AvatarNode>(), -1);
+            var metadata = new AssimpMetadata(pScene->MMetaData);
+            pScene->MRootNode->MTransformation = metadata.GetValidRootTransformation(options.Scale);
+            var hierarchy = ParseHierarchyRecursive(pScene->MRootNode, new List<AvatarNode>(),
+                -1);
             var avatar = new Avatar { Hierarchy = hierarchy.ToArray() };
 
             var meshesCount = pScene->MNumMeshes;
@@ -32,7 +36,14 @@ namespace YaEngine.Import
 
         private static unsafe List<AvatarNode> ParseHierarchyRecursive(Node* pNode, List<AvatarNode> nodes, int parentIndex)
         {
-            var node = new AvatarNode(pNode->MName, parentIndex);
+            var meshIndexes = new uint[pNode->MNumMeshes];
+            for (var i = 0; i < meshIndexes.Length; ++i)
+            {
+                meshIndexes[i] = pNode->MMeshes[i];
+            }
+
+            var localTransform = Matrix4x4.Transpose(pNode->MTransformation);
+            var node = new AvatarNode(pNode->MName.ToNormalizedString(), parentIndex, meshIndexes, localTransform);
             parentIndex = nodes.Count;
             nodes.Add(node);
             

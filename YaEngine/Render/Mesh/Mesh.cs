@@ -4,6 +4,7 @@ namespace YaEngine.Render
 {
     public class Mesh
     {
+        public string Name;
         public float[] Vertices;
         public uint[] Indexes;
 

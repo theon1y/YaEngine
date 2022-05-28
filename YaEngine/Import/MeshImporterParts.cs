@@ -11,8 +11,10 @@ namespace YaEngine.Import
             new PositionImporter(),
             new Uv0Importer(),
             new NormalImporter(),
+            new TangentImporter(),
+            new BitangentImporter(),
             new ColorImporter(),
-            new Uv1Importer()
+            new Uv1Importer(),
         };
 
         private class PositionImporter : MeshImporterPart<Vector3>
@@ -55,6 +57,20 @@ namespace YaEngine.Import
         {
             protected override MeshAttribute Attribute => MeshAttributes.Uv1;
             protected override unsafe Vector3* GetData(Mesh* pMesh) => pMesh->MTextureCoords.Element1;
+        }
+
+        private class TangentImporter : MeshImporterPart<Vector3>
+        {
+            protected override MeshAttribute Attribute => MeshAttributes.Tangent;
+            protected override unsafe Vector3* GetData(Mesh* pMesh) => pMesh->MTangents;
+            protected override void CopyTo(Vector3 value, float[] vertexData, int offset) => value.CopyTo(vertexData, offset);
+        }
+
+        private class BitangentImporter : MeshImporterPart<Vector3>
+        {
+            protected override MeshAttribute Attribute => MeshAttributes.Bitangent;
+            protected override unsafe Vector3* GetData(Mesh* pMesh) => pMesh->MBitangents;
+            protected override void CopyTo(Vector3 value, float[] vertexData, int offset) => value.CopyTo(vertexData, offset);
         }
     }
 }

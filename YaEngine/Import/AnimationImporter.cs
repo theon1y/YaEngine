@@ -11,12 +11,12 @@ namespace YaEngine.Import
     {
         private readonly IAnimationImporterPart[] importerParts = AnimationImporterParts.ImporterParts;
 
-        public Animation.Animation[] Import(string filePath)
+        public Animation.Animation[] Import(string filePath, ImportOptions options)
         {
-            return ImportUtils.ImportFromFile(filePath, ParseScene);
+            return ImportUtils.ImportFromFile(filePath, options, ParseScene);
         }
-        
-        private unsafe Animation.Animation[] ParseScene(IntPtr scenePointer)
+
+        public unsafe Animation.Animation[] ParseScene(IntPtr scenePointer, ImportOptions options)
         {
             var pScene = (Scene*) scenePointer;
             var n = pScene->MNumAnimations;
@@ -27,7 +27,7 @@ namespace YaEngine.Import
                 var newAnimation = new Animation.Animation();
                 animations[i] = newAnimation;
 
-                newAnimation.Name = pAnimation->MName;
+                newAnimation.Name = pAnimation->MName.ToNormalizedString();
                 newAnimation.Duration = (float) pAnimation->MDuration;
                 newAnimation.FramesPerSecond = (int) pAnimation->MTicksPerSecond;
 
@@ -36,7 +36,7 @@ namespace YaEngine.Import
                 for (var j = 0; j < channelCount; ++j)
                 {
                     var channel = pAnimation->MChannels[j];
-                    string boneName = channel->MNodeName;
+                    string boneName = channel->MNodeName.ToNormalizedString();
                     
                     var boneAnimation = new BoneAnimation { Name = boneName };
                     foreach (var importerPart in importerParts)

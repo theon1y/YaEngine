@@ -15,6 +15,5 @@ namespace YaEngine.Render
     {
         public Renderer Renderer;
         public Transform RendererTransform;
-        public Animator? Animator;
     }
 }

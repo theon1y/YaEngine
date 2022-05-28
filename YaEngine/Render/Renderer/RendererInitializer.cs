@@ -1,4 +1,5 @@
-﻿using YaEcs;
+﻿using System.Numerics;
+using YaEcs;
 
 namespace YaEngine.Render
 {
@@ -8,5 +9,6 @@ namespace YaEngine.Render
         public MaterialInitializer Material;
         public bool CullFace = true;
         public Mesh? InstanceData;
+        public Matrix4x4[]? BoneMatrices;
     }
 }

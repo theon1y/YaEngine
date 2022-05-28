@@ -1,4 +1,5 @@
-﻿using YaEcs;
+﻿using System.Numerics;
+using YaEcs;
 
 namespace YaEngine.Render
 {
@@ -9,6 +10,8 @@ namespace YaEngine.Render
         
         public uint InstanceCount;
         public Mesh? InstanceData;
+
+        public Matrix4x4[]? BoneMatrices;
         
         public Mesh Mesh;
         public Material Material;

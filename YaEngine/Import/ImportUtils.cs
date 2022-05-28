@@ -9,19 +9,20 @@ namespace YaEngine.Import
 {
     public static class ImportUtils
     {
-        public static unsafe T ImportFromFile<T>(string filePath, Func<IntPtr, T> importer)
+        public static unsafe T ImportFromFile<T>(string filePath, ImportOptions options, Func<IntPtr, ImportOptions, T> importer)
         {
-            var filePathGcHandle = MarshalToPinnedAscii(filePath, out var filePathPointer);
+            var fullPath = System.IO.Path.GetFullPath(filePath);
+            var filePathGcHandle = MarshalToPinnedAscii(fullPath, out var filePathPointer);
             var assimp = Assimp.GetApi();
             var scenePointer = assimp.ImportFile(filePathPointer, 0);
             if (scenePointer == null)
             {
                 var errorPointer = assimp.GetErrorString();
                 var error = Marshal.PtrToStringUTF8(new IntPtr(errorPointer));
-                throw new Exception($"Could not import {filePath}:\n{error}");
+                throw new Exception($"Could not import {System.IO.Path.GetFileNameWithoutExtension(fullPath)}:\n{error}");
             }
 
-            var result = importer((IntPtr)scenePointer);
+            var result = importer((IntPtr)scenePointer, options);
             
             assimp.ReleaseImport(scenePointer);
             filePathGcHandle.Free();
@@ -45,7 +46,7 @@ namespace YaEngine.Import
             for (var i = 0; i < boneCount; ++i)
             {
                 var bone = pMesh->MBones[i];
-                string name = bone->MName;
+                string name = bone->MName.ToNormalizedString();
                 if (!bones.TryGetValue(name, out var extractedBone))
                 {
                     extractedBone = new Animation.Bone(bones.Count, Matrix4x4.Transpose(bone->MOffsetMatrix));
@@ -68,6 +69,14 @@ namespace YaEngine.Import
             }
 
             return new BoneMapping(bones, weights);
+        }
+
+        public static string ToNormalizedString(this AssimpString str)
+        {
+            return str.AsString
+                .ToLowerInvariant()
+                .Replace(" ", "")
+                .Replace("-", "_");
         }
     }
 }

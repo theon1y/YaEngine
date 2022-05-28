@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Silk.NET.Input;
 using Silk.NET.Input.Extensions;
 using YaEcs;
 using YaEcs.Bootstrap;
@@ -13,12 +14,21 @@ namespace YaEngine.Input
         {
             if (!world.TryGetSingleton(out InputContext input)) return;
 
-            if (input.PrevMousePosition != Vector2.Zero)
+            if (input.IsKeyPressed(Key.AltLeft))
             {
-                input.MouseDelta = input.MousePosition - input.PrevMousePosition;
+                input.Instance.Mice[0].Cursor.CursorMode = CursorMode.Normal;
+                input.MouseDelta = Vector2.Zero;
+            }
+            else
+            {
+                input.Instance.Mice[0].Cursor.CursorMode = CursorMode.Raw;
+                if (input.PrevMousePosition != Vector2.Zero)
+                {
+                    input.MouseDelta = input.MousePosition - input.PrevMousePosition;
+                }
             }
             input.PrevMousePosition = input.MousePosition;
-
+            
             input.PressedKeys.Clear();
             input.ReleasedKeys.Clear();
             input.ReleasedKeys.UnionWith(input.HoldKeys);

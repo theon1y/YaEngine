@@ -2,9 +2,10 @@
 {
     public enum Primitive
     {
-        Triangle,
-        Quad,
-        Line,
-        Point
+        Triangle = 10,
+        Quad = 20,
+        Line = 30,
+        Point = 40,
+        TriangleStrip = 50,
     }
 }

@@ -12,12 +12,12 @@ namespace YaEngine.Import
     {
         private static readonly BoneWeight DefaultWeight = new(-1, 0f);
         
-        public Mesh[] Import(string filePath)
+        public Mesh[] Import(string filePath, ImportOptions options)
         {
-            return ImportUtils.ImportFromFile(filePath, ParseScene);
+            return ImportUtils.ImportFromFile(filePath, options, ParseScene);
         }
-        
-        private unsafe Mesh[] ParseScene(IntPtr scenePointer)
+
+        public unsafe Mesh[] ParseScene(IntPtr scenePointer, ImportOptions options)
         {
             var pScene = (Scene*) scenePointer;
             var n = pScene->MNumMeshes;
@@ -26,8 +26,8 @@ namespace YaEngine.Import
             {
                 var pMesh = pScene->MMeshes[i];
                 if (pMesh->MVertices == null) continue;
-                
-                var newMesh = new Mesh();
+
+                var newMesh = new Mesh { Name = pMesh->MName.ToNormalizedString() };
                 result[i] = newMesh;
 
                 var boneMapping = ImportUtils.GetBoneMapping(pMesh);
@@ -123,7 +123,6 @@ namespace YaEngine.Import
             for (var j = 0; j < pMesh->MNumFaces; ++j)
             {
                 var pFace = pMesh->MFaces[j];
-                indicesCount += pFace.MNumIndices;
                 for (var k = 0; k < pFace.MNumIndices; ++k)
                 {
                     indices[idx] = pFace.MIndices[k];

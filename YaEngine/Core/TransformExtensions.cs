@@ -119,5 +119,20 @@ namespace YaEngine.Core
         {
             return Vector3.Normalize(Vector3.Transform(Vector3.UnitX, transform.GetWorldMatrix()));
         }
+        
+        public static void SetLocalTransform(this Transform transform, Matrix4x4 matrix)
+        {
+            var position = matrix.Translation;
+            var rotation = Quaternion.CreateFromRotationMatrix(matrix);
+            var scale = matrix.GetScale();
+            transform.SetLocalTransform(position, rotation, scale);
+        }
+
+        public static void SetLocalTransform(this Transform transform, Vector3 position, Quaternion rotation, Vector3 scale)
+        {
+            transform.Position = position;
+            transform.Rotation = rotation;
+            transform.Scale = scale;
+        }
     }
 }

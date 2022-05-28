@@ -18,11 +18,11 @@ namespace YaEngine.Render
             if (!world.TryGetSingleton(out RenderBuffers buffers)) return;
 
             var lightColor = Vector3.Zero;
-            var lightDirection = Vector3.One;
+            var lightPosition = Vector3.Zero;
             world.ForEach((Entity _, AmbientLight light, Transform transform) =>
             {
                 lightColor = light.Color;
-                lightDirection = Vector3.Normalize(transform.GetWorldPosition());
+                lightPosition = transform.GetWorldPosition();
             });
 
             renderApi.Clear();
@@ -31,27 +31,17 @@ namespace YaEngine.Render
             {
                 if (!world.TryGetComponent(cameraEntity, out Camera camera)) continue;
                 if (!world.TryGetComponent(cameraEntity, out Transform cameraTransform)) continue;
-
-                var windowSize = application.Instance.Size;
-                var aspectRatio = windowSize.X / (float) windowSize.Y;
-                var fov = camera.Fov.ToRadians();
-                var forward = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, cameraTransform.Rotation));
-                var view = Matrix4x4.CreateLookAt(cameraTransform.Position, cameraTransform.Position + forward,
-                    Vector3.UnitY);
-                var projection = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspectRatio, 0.1f, 100f);
                 
                 buffers.OpaqueRenderQueue.Clear();
                 buffers.TransparentRenderQueue.Clear();
-                world.ForEach((Entity entity, Renderer renderer, Transform rendererTransform) =>
+                world.ForEach((Entity _, Renderer renderer, Transform rendererTransform) =>
                 {
                     if (!renderer.IsEnabled) return;
                     
-                    world.TryGetComponent(entity, out Animator animator);
                     var renderArguments = new RenderArguments
                     {
                         Renderer = renderer,
-                        RendererTransform = rendererTransform,
-                        Animator = animator
+                        RendererTransform = rendererTransform
                     };
                     if (renderer.Material.Blending == Blending.Disabled)
                     {
@@ -62,13 +52,22 @@ namespace YaEngine.Render
                         buffers.TransparentRenderQueue.Add(renderArguments);
                     }
                 });
+                
+                var windowSize = application.Instance.Size;
+                var aspectRatio = windowSize.X / (float) windowSize.Y;
+                var fov = camera.Fov.ToRadians();
+                var forward = Vector3.Normalize(Vector3.Transform(Vector3.UnitZ, cameraTransform.Rotation));
+                var view = Matrix4x4.CreateLookAt(cameraTransform.Position, cameraTransform.Position + forward,
+                    Vector3.UnitY);
+                var cameraPosition = cameraTransform.Position;
+                var projection = Matrix4x4.CreatePerspectiveFieldOfView(fov, aspectRatio, 0.1f, 100f);
 
                 //buffers.OpaqueRenderQueue.Sort(SortRenderers);                
                 renderApi.PrepareOpaqueRender();
                 foreach (var renderArguments in buffers.OpaqueRenderQueue)
                 {
                     Render(renderArguments.Renderer, renderArguments.RendererTransform, view, projection, renderApi, lightColor,
-                        lightDirection, renderArguments.Animator?.BoneMatrices);
+                        lightPosition, cameraPosition);
                 }
 
                 //buffers.TransparentRenderQueue.Sort(SortRenderers);
@@ -76,13 +75,13 @@ namespace YaEngine.Render
                 foreach (var renderArguments in buffers.TransparentRenderQueue)
                 {
                     Render(renderArguments.Renderer, renderArguments.RendererTransform, view, projection, renderApi, lightColor,
-                        lightDirection, renderArguments.Animator?.BoneMatrices);
+                        lightPosition, cameraPosition);
                 }
             }
         }
 
         private static void Render(Renderer renderer, Transform rendererTransform, Matrix4x4 view, Matrix4x4 projection,
-            RenderApi renderApi, Vector3 lightColor, Vector3 lightDirection, Matrix4x4[]? boneMatrices)
+            RenderApi renderApi, Vector3 lightColor, Vector3 lightPosition, Vector3 cameraPosition)
         {
             renderer.Update();
             renderer.Bind();
@@ -94,25 +93,34 @@ namespace YaEngine.Render
             shader.SetUniform("uModel", worldMatrix);
             shader.SetUniform("uView", view);
             shader.SetUniform("uProjection", projection);
+            shader.TrySetUniform("uViewPosition", cameraPosition);
 
-            shader.TrySetUniform("lightColor", lightColor);
-            shader.TrySetUniform("lightDirection", lightDirection);
+            shader.TrySetUniform("uLightColor", lightColor);
+            shader.TrySetUniform("uLightPosition", lightPosition);
             
             foreach (var uniform in renderer.Material.Vector4Uniforms)
             {
-                shader.SetUniform(uniform.Key, uniform.Value);
+                shader.TrySetUniform(uniform.Key, uniform.Value);
+            }
+            
+            foreach (var uniform in renderer.Material.FloatUniforms)
+            {
+                shader.TrySetUniform(uniform.Key, uniform.Value);
             }
 
-            if (renderer.Material.Texture != null && shader.TryGetUniformLocation("uTexture0", out var textureLocation))
+            var slot = 0;
+            foreach (var uniform in renderer.Material.TextureUniforms)
             {
-                var slot = 0;
-                renderer.Material.Texture.Bind(slot);
+                if (!shader.TryGetUniformLocation(uniform.Key, out var textureLocation)) continue;
+
+                uniform.Value.Bind(slot);
                 shader.SetUniform(textureLocation, slot);
+                ++slot;
             }
 
-            if (boneMatrices != null && shader.TryGetUniformLocation("uFinalBoneMatrices", out var boneMatricesLocation))
+            if (renderer.BoneMatrices != null && shader.TryGetUniformLocation("uFinalBoneMatrices", out var boneMatricesLocation))
             {
-                shader.SetUniform(boneMatricesLocation, boneMatrices);
+                shader.SetUniform(boneMatricesLocation, renderer.BoneMatrices);
             }
             
             renderApi.Draw(renderer);

@@ -34,20 +34,26 @@ namespace YaEngine.Render.OpenGL
         {
             var material = rendererInitializer.Material;
             var mesh = rendererInitializer.Mesh;
+            var shader = LoadShader(shaderFactory, shaderRegistry, material.ShaderInitializer);
+            var texture = LoadTexture(textureFactory, textureRegistry, material.TextureInitializer);
             var renderer = new GlRenderer
             {
-                Material = new Material
+                Material = new Material(shader, texture)
                 {
                     Blending = rendererInitializer.Material.Blending,
-                    Vector4Uniforms = rendererInitializer.Material.Vector4Uniforms.Copy()
+                    Vector4Uniforms = rendererInitializer.Material.Vector4Uniforms.Copy(),
+                    FloatUniforms = rendererInitializer.Material.FloatUniforms.Copy()
                 },
                 Mesh = mesh,
                 CullFace = rendererInitializer.CullFace,
-                InstanceData = rendererInitializer.InstanceData
+                InstanceData = rendererInitializer.InstanceData,
+                BoneMatrices = rendererInitializer?.BoneMatrices
             };
-            
-            renderer.Material.Shader = LoadShader(shaderFactory, shaderRegistry, material.ShaderInitializer);
-            renderer.Material.Texture = LoadTexture(textureFactory, textureRegistry, material.TextureInitializer);
+            foreach (var pair in material.TextureUniforms)
+            {
+                var uniformTexture = LoadTexture(textureFactory, textureRegistry, pair.Value);
+                renderer.Material.TextureUniforms[pair.Key] = uniformTexture;
+            }
 
             BindBuffers(gl, renderer);
             return renderer;

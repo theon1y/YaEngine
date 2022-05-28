@@ -10,5 +10,7 @@ namespace YaEngine.Render
         public Blending Blending;
         
         public Dictionary<string, Vector4> Vector4Uniforms = new();
+        public Dictionary<string, TextureInitializer> TextureUniforms = new();
+        public Dictionary<string, float> FloatUniforms = new();
     }
 }

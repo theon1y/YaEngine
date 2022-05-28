@@ -14,15 +14,24 @@ namespace YaEngine.Animation
         public readonly Dictionary<string, Animation> Animations;
         public readonly Matrix4x4[] BoneMatrices;
         
-        private readonly Matrix4x4[] worldMatrices;
+        private readonly Matrix4x4[] worldTransforms;
+        private readonly Matrix4x4 globalInverseTransform;
         private readonly Avatar avatar;
         
         public Animator(IEnumerable<Animation> animations, Avatar avatar)
         {
             this.avatar = avatar;
             Animations = animations.ToDictionary(x => x.Name);
-            BoneMatrices = new Matrix4x4[MaxBones];
-            worldMatrices = new Matrix4x4[avatar.Hierarchy.Length];
+            BoneMatrices = Enumerable.Repeat(Matrix4x4.Identity, MaxBones).ToArray();
+            worldTransforms = new Matrix4x4[avatar.Hierarchy.Length];
+            if (avatar.Hierarchy.Length > 0)
+            {
+                Matrix4x4.Invert(avatar.Hierarchy[0].LocalTransform, out globalInverseTransform);
+            }
+            else
+            {
+                globalInverseTransform = Matrix4x4.Identity;
+            }
         }
 
         public void Play(string animationName)
@@ -36,30 +45,33 @@ namespace YaEngine.Animation
             if (Animation == null) return;
 
             Time = (Time + Animation.FramesPerSecond * deltaTime) % Animation.Duration;
-            RecalculateBoneTransforms(avatar, Animation, Time, avatar.Bones, BoneMatrices, worldMatrices);
+            RecalculateBoneTransforms(avatar, Animation, Time, avatar.Bones, BoneMatrices, worldTransforms,
+                globalInverseTransform);
         }
-
+        
         private static void RecalculateBoneTransforms(Avatar avatar, Animation animation, float time,
-            Dictionary<string, Bone>? meshBones, Matrix4x4[] boneMatrices, Matrix4x4[] worldMatrices)
+            Dictionary<string, Bone>? meshBones, Matrix4x4[] boneMatrices, Matrix4x4[] worldTransforms,
+            Matrix4x4 globalInverseTransform)
         {
             for (var i = 0; i < avatar.Hierarchy.Length; ++i)
             {
                 var node = avatar.Hierarchy[i];
-
-                var parentTransform = node.ParentIndex == -1 ? Matrix4x4.Identity : worldMatrices[node.ParentIndex];
-                var worldTransform = parentTransform;
+                var parentTransform = node.ParentIndex == -1 ? globalInverseTransform : worldTransforms[node.ParentIndex];
+                Matrix4x4 localTransform;
                 if (animation.BoneAnimations.TryGetValue(node.Name, out var boneAnimation))
                 {
-                    var localTransform = boneAnimation.GetLocalTransformAtTime(time);
-                    worldTransform = localTransform * parentTransform;
+                    localTransform = boneAnimation.GetLocalTransformAtTime(time);
                 }
-
-                worldMatrices[i] = worldTransform;
-
-                if (meshBones != null && meshBones.TryGetValue(node.Name, out var bone))
+                else
                 {
-                    boneMatrices[bone.Id] = bone.BoneOffset * worldTransform;
+                    localTransform = node.LocalTransform;
                 }
+                var worldTransform = localTransform * parentTransform;
+                worldTransforms[i] = worldTransform;
+                
+                if (meshBones == null || !meshBones.TryGetValue(node.Name, out var bone)) continue;
+
+                boneMatrices[bone.Id] = bone.BoneOffset * worldTransform;
             }
         }
     }

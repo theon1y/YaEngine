@@ -31,6 +31,7 @@ namespace YaEngine.Bootstrap
                     return Window.Create(defaultOptions);
                 })
                 .AddSilkBindings(configuration)
+                .AddSingleton<ModelImporter>()
                 .AddSingleton<MeshImporter>()
                 .AddSingleton<AnimationImporter>()
                 .AddSingleton<AvatarImporter>()
