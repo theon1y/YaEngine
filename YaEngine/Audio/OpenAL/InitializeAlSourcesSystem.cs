@@ -19,7 +19,6 @@ namespace YaEngine.Audio.OpenAL
             world.ForEach((Entity entity, AudioInitializer audioInitializer) =>
             {
                 var component = new OpenAlAudioSource(alAudioApi.Al, audioInitializer.AudioProvider);
-                component.Load();
                 world.AddComponent<AudioSource>(entity, component);
             });
             return Task.CompletedTask;

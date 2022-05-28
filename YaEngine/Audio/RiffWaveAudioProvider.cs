@@ -76,9 +76,9 @@ namespace YaEngine.Audio
             offset += 2;
             result.SampleRate = BinaryPrimitives.ReadInt32LittleEndian(new Span<byte>(buffer, offset, 4));
             offset += 4;
-            result.ByteRate = BinaryPrimitives.ReadInt32LittleEndian(new Span<byte>(buffer, offset, 4));
+            // ByteRate info
             offset += 4;
-            result.BlockAlign = BinaryPrimitives.ReadInt16LittleEndian(new Span<byte>(buffer, offset, 2));
+            // BlockAlignInfo
             offset += 2;
             result.BitsPerSample = BinaryPrimitives.ReadInt16LittleEndian(new Span<byte>(buffer, offset, 2));
             offset += 2;

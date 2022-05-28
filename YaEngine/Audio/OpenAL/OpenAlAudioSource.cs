@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Silk.NET.OpenAL;
 
 namespace YaEngine.Audio.OpenAL
@@ -9,6 +10,7 @@ namespace YaEngine.Audio.OpenAL
         private readonly IAudioProvider audioProvider;
         private readonly uint handle;
         private readonly uint bufferId;
+        private byte[]? data;
 
         public OpenAlAudioSource(AL al, IAudioProvider audioProvider)
         {
@@ -18,24 +20,33 @@ namespace YaEngine.Audio.OpenAL
             bufferId = al.GenBuffer();
         }
 
-        public void Load()
+        public override void Play(bool isLooping)
+        {
+            IsPlaying = true;
+            if (data != null)
+            {
+                PlayFromBuffer(isLooping, data);
+                return;
+            }
+            
+            Task.Run(Load)
+                .ContinueWith(task => PlayFromBuffer(isLooping, task.Result));
+        }
+
+        private byte[] Load()
+        {
+            data = audioProvider.GetAudioData();
+            return data;
+        }
+
+        private void PlayFromBuffer(bool isLooping, byte[] buffer)
         {
             var properties = audioProvider.ReadProperties();
             var format = GetAlBufferFormat(properties);
-            unsafe
-            {
-                var data = audioProvider.GetAudioData();
-                fixed(byte* pData = data)
-                    al.BufferData(bufferId, format, pData, data.Length, properties.SampleRate);
-            }
-        }
-
-        public override void Play(bool isLooping)
-        {
+            al.BufferData(bufferId, format, buffer, properties.SampleRate);
             al.SetSourceProperty(handle, SourceBoolean.Looping, isLooping);
             al.SetSourceProperty(handle, SourceInteger.Buffer, bufferId);
             al.SourcePlay(handle);
-            IsPlaying = true;
         }
 
         public override void Stop()
