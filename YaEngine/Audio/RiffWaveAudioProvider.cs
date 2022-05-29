@@ -2,6 +2,7 @@
 using System.Buffers.Binary;
 using System.IO;
 using System.Text;
+using Microsoft.Extensions.Logging;
 
 namespace YaEngine.Audio
 {
@@ -13,13 +14,15 @@ namespace YaEngine.Audio
         private const string HeaderEnd = "WAVE";
 
         private readonly string filePath;
+        private readonly ILogger logger;
         private readonly byte[] buffer;
         
         private int headerEndOffset;
 
-        public RiffWaveAudioProvider(string filePath)
+        public RiffWaveAudioProvider(string filePath, ILogger logger)
         {
             this.filePath = filePath;
+            this.logger = logger;
             buffer = new byte[BufferSize];
         }
 
@@ -85,7 +88,7 @@ namespace YaEngine.Audio
 
             headerEndOffset = offset;
             
-            Console.WriteLine($"Success. Detected RIFF-WAVE audio file, PCM encoding. {result}");
+            logger.LogDebug("Success. Detected RIFF-WAVE audio file, PCM encoding. {0}", result);
 
             return result;
         }
@@ -104,7 +107,7 @@ namespace YaEngine.Audio
                 {
                     var data = file.Slice(44, size).ToArray();
 
-                    Console.WriteLine($"Read {size} bytes Data");
+                    logger.LogDebug("Read {0} bytes Data", size);
                     return data;
                 }
                 
@@ -117,12 +120,12 @@ namespace YaEngine.Audio
                 {
                     var v = file.Slice(index, size);
                     var str = ReadString(v);
-                    Console.WriteLine($"iXML Chunk: {str}");
+                    logger.LogDebug("iXML Chunk: {0}", str);
                     index += size;
                 }
                 else
                 {
-                    Console.WriteLine($"Unknown Section: {identifier}");
+                    logger.LogDebug("Unknown Section: {0}", identifier);
                     index += size;
                 }
             }

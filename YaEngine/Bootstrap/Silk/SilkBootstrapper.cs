@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Windowing;
 using YaEcs;
 using YaEngine.Core;
@@ -23,16 +24,19 @@ namespace YaEngine.Bootstrap
             IEnumerable<IInitializePhysicsSystem> initializePhysicsSystems,
             IEnumerable<IPhysicsSystem> physicsSystems,
             IEnumerable<IDisposePhysicsSystem> disposePhysicsSystems,
-            UpdateStepRegistry updateStepRegistry)
+            UpdateStepRegistry updateStepRegistry,
+            ILogger<World> worldLogger)
         {
             this.window = window;
             this.modelWorld = modelWorld;
             renderWorld = new World(updateStepRegistry,
                 initializeRenderSystems, renderSystems, disposeRenderSystems,
-                modelWorld.Components, modelWorld.Entities);
+                modelWorld.Components, modelWorld.Entities,
+                worldLogger);
             physicsWorld = new World(updateStepRegistry,
                 initializePhysicsSystems, physicsSystems, disposePhysicsSystems,
-                modelWorld.Components, modelWorld.Entities);
+                modelWorld.Components, modelWorld.Entities,
+                worldLogger);
             window.Load += InitializeWorld;
             window.Update += UpdateWorld;
             window.Render += RenderWorld;
