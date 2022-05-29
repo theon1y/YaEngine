@@ -53,42 +53,25 @@ namespace YaEngine.Bootstrap
 
         private void UpdateWorld(double deltaTime)
         {
-            try
-            {
-                UpdateWorlds((float) deltaTime);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-        }
-
-        private void UpdateWorlds(float deltaTime)
-        {
-            if (modelWorld.TryGetSingleton(out Time time))
-            {
-                time.DeltaTime = deltaTime;
-                time.TimeSinceStartup += deltaTime;
-            }
-
-            modelWorld.Update();
+            Update<Time>(modelWorld, deltaTime);
             if (IsClosing) return;
-
-            if (physicsWorld.TryGetSingleton(out PhysicsTime physicsTime))
-            {
-                physicsTime.DeltaTime = deltaTime;
-            }
-            physicsWorld.Update();
+            
+            Update<PhysicsTime>(physicsWorld, deltaTime);
         }
 
         private void RenderWorld(double deltaTime)
         {
-            if (modelWorld.TryGetSingleton(out RenderTime time))
+            Update<RenderTime>(renderWorld, deltaTime);
+        }
+
+        private static void Update<TTime>(IWorld world, double deltaTime) where TTime : Time
+        {
+            if (world.TryGetSingleton(out TTime time))
             {
                 time.DeltaTime = (float) deltaTime;
+                time.TimeSinceStartup += deltaTime;
             }
-
-            renderWorld.Update();
+            world.Update();
         }
         
         private void DisposeWorld()

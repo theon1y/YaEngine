@@ -1,9 +1,9 @@
-﻿using YaEcs;
+﻿using YaEngine.Core;
 
 namespace YaEngine.Physics
 {
-    public class PhysicsTime : IComponent
+    public class PhysicsTime : Time
     {
-        public float DeltaTime;
+        
     }
 }

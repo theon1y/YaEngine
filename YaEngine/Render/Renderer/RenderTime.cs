@@ -1,9 +1,9 @@
-﻿using YaEcs;
+﻿using YaEngine.Core;
 
 namespace YaEngine.Render
 {
-    public class RenderTime : IComponent
+    public class RenderTime : Time
     {
-        public float DeltaTime;
+        
     }
 }
