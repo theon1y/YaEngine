@@ -2,13 +2,14 @@
 using YaEcs;
 using YaEcs.Bootstrap;
 using YaEngine.Core;
+using YaEngine.Model;
 using YaEngine.Render;
 
 namespace YaEngine.VFX.ParticleSystem
 {
-    public class ParticleSystem : IUpdateSystem
+    public class ParticleSystem : IModelSystem
     {
-        public UpdateStep UpdateStep => UpdateSteps.Update;
+        public UpdateStep UpdateStep => ModelSteps.Update;
         
         public void Execute(IWorld world)
         {

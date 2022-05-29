@@ -3,12 +3,13 @@ using Silk.NET.Input;
 using Silk.NET.Input.Extensions;
 using YaEcs;
 using YaEcs.Bootstrap;
+using YaEngine.Model;
 
 namespace YaEngine.Input
 {
-    public class InputSystem : IUpdateSystem
+    public class InputSystem : IModelSystem
     {
-        public UpdateStep UpdateStep => UpdateSteps.First;
+        public UpdateStep UpdateStep => ModelSteps.First;
         
         public void Execute(IWorld world)
         {

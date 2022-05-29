@@ -2,7 +2,7 @@
 
 namespace YaEngine.Physics
 {
-    public interface IInitializePhysicsSystem : IInitializeSystem
+    public interface IInitializePhysicsSystem : IInitializeSystem, IPhysicsMarker
     {
         
     }

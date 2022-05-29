@@ -11,6 +11,8 @@ namespace YaEngine.Render.OpenGL
 
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out ITextureFactory _)) return Task.CompletedTask;
+            
             if (!world.TryGetSingleton(out RenderApi renderApi)) return Task.CompletedTask;
             if (renderApi is not GlRenderApi glRenderApi)
             {

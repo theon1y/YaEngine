@@ -12,21 +12,20 @@ using YaEngine.Render.OpenGL;
 
 namespace YaEngine.ImGui
 {
-    public class InitializeImGuiSystem : IInitializeSystem
+    public class InitializeImGuiSystem : IInitializeRenderSystem
     {
         public int Priority => InitializePriorities.Second;
         
         private readonly IWindow window;
-        private readonly List<IImGuiSystem> imGuiSystems;
 
-        public InitializeImGuiSystem(IWindow window, IEnumerable<IImGuiSystem> imGuiSystems)
+        public InitializeImGuiSystem(IWindow window)
         {
             this.window = window;
-            this.imGuiSystems = imGuiSystems.ToList();
         }
         
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out GuiRegistry _)) return Task.CompletedTask;
             if (!world.TryGetSingleton(out RenderApi api)) return Task.CompletedTask;
             if (!world.TryGetSingleton(out InputContext input)) return Task.CompletedTask;
             if (api is not GlRenderApi { Gl: var gl })
@@ -38,7 +37,7 @@ namespace YaEngine.ImGui
             window.FramebufferResize += gl.Viewport;
             
             world.AddSingleton(new ImGui { Controller = controller });
-            world.AddSingleton(new GuiRegistry(imGuiSystems));
+            world.AddSingleton(new GuiRegistry());
             return Task.CompletedTask;
         }
     }

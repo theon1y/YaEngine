@@ -1,11 +1,12 @@
 ﻿using YaEcs;
 using YaEcs.Bootstrap;
+using YaEngine.Model;
 
 namespace YaEngine.Render
 {
-    public class RegisterCameraSystem : IUpdateSystem
+    public class RegisterCameraSystem : IModelSystem
     {
-        public UpdateStep UpdateStep => UpdateSteps.EarlyUpdate;
+        public UpdateStep UpdateStep => ModelSteps.EarlyUpdate;
         
         public void Execute(IWorld world)
         {

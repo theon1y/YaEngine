@@ -10,6 +10,8 @@ namespace YaEngine.Render
         
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out RenderBuffers _)) return Task.CompletedTask;
+            
             world.AddSingleton(new RenderBuffers());
             return Task.CompletedTask;
         }

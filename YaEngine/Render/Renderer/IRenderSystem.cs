@@ -2,7 +2,7 @@
 
 namespace YaEngine.Render
 {
-    public interface IRenderSystem : IUpdateSystem
+    public interface IRenderSystem : IUpdateSystem, IRenderMarker
     {
         
     }

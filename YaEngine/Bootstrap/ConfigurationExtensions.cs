@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using YaEngine.SceneManagement;
 
 namespace YaEngine.Bootstrap
 {
@@ -22,6 +23,14 @@ namespace YaEngine.Bootstrap
                 .ClearProviders()
                 .AddConfiguration(configuration.GetSection("Logging"))
                 .AddConsole());
+        }
+
+        public static IServiceCollection AddManagers(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<WorldManager>()
+                .AddSingleton<SceneManager>()
+                .AddSingleton<ISceneManager>(provider => provider.GetService<SceneManager>());
         }
     }
 }

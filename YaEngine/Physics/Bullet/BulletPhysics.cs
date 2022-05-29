@@ -6,19 +6,10 @@ namespace YaEngine.Physics
     public class BulletPhysics : Physics
     {
         public readonly DiscreteDynamicsWorld World;
-        public readonly CollisionDispatcher Dispatcher;
-        public readonly BroadphaseInterface Broadphase;
-        public readonly ConstraintSolver? ConstraintSolver;
-        public readonly CollisionConfiguration CollisionConfiguration;
 
-        public BulletPhysics(DiscreteDynamicsWorld world, CollisionDispatcher dispatcher,
-            BroadphaseInterface broadphase, ConstraintSolver? constraintSolver, CollisionConfiguration collisionConf)
+        public BulletPhysics(DiscreteDynamicsWorld world)
         {
             World = world;
-            Dispatcher = dispatcher;
-            Broadphase = broadphase;
-            ConstraintSolver = constraintSolver;
-            CollisionConfiguration = collisionConf;
         }
 
         public override void Update(float deltaTime)

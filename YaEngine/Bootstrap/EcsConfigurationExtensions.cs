@@ -1,11 +1,13 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using YaEcs;
+using YaEcs.Bootstrap;
 using YaEngine.Animation;
 using YaEngine.Core;
 using YaEngine.ImGui;
 using YaEngine.Input;
 using YaEngine.Physics;
 using YaEngine.Render;
+using YaEngine.SceneManagement;
 using YaEngine.VFX.ParticleSystem;
 
 namespace YaEngine.Bootstrap
@@ -18,8 +20,15 @@ namespace YaEngine.Bootstrap
                 .AddDefaultInitializeSystems()
                 .AddDefaultUpdateSystems()
                 .AddDefaultDisposeSystems()
+                .AddModelSteps()
                 .AddRenderSteps()
                 .AddPhysicsSteps();
+        }
+
+        public static IServiceCollection AddScene<T>(this IServiceCollection serviceCollection) where T : class, ISceneProvider
+        {
+            return serviceCollection
+                .AddSingleton<ISceneProvider, T>();
         }
         
         public static IServiceCollection AddDefaultInitializeSystems(this IServiceCollection serviceCollection)
@@ -30,9 +39,9 @@ namespace YaEngine.Bootstrap
                 .AddScoped<IInitializeSystem, InitializeTexturesSystem>()
                 .AddScoped<IInitializeSystem, InitializeImGuiSystem>()
                 .AddScoped<IInitializeSystem, InitializeCameraRegistrySystem>()
-                .AddScoped<IInitializeRenderSystem, InitializeParticlesSystem>()
-                .AddScoped<IInitializeRenderSystem, InitializeBuffersSystem>()
-                .AddScoped<IInitializePhysicsSystem, InitializePhysicsSystem>();
+                .AddScoped<IInitializeSystem, InitializeParticlesSystem>()
+                .AddScoped<IInitializeSystem, InitializeBuffersSystem>()
+                .AddScoped<IInitializeSystem, InitializePhysicsSystem>();
         }
         
         public static IServiceCollection AddDefaultUpdateSystems(this IServiceCollection serviceCollection)
@@ -42,10 +51,10 @@ namespace YaEngine.Bootstrap
                 .AddScoped<IUpdateSystem, RegisterCameraSystem>()
                 .AddScoped<IUpdateSystem, AnimatorUpdateSystem>()
                 .AddScoped<IUpdateSystem, ParticleSystem>()
-                .AddScoped<IRenderSystem, RenderSystem>()
-                .AddScoped<IRenderSystem, ImGuiSystem>()
-                .AddScoped<IPhysicsSystem, UpdatePhysicsSystem>()
-                .AddScoped<IPhysicsSystem, SetTransformsSystem>();
+                .AddScoped<IUpdateSystem, RenderSystem>()
+                .AddScoped<IUpdateSystem, ImGuiSystem>()
+                .AddScoped<IUpdateSystem, UpdatePhysicsSystem>()
+                .AddScoped<IUpdateSystem, SetTransformsSystem>();
         }
         
         public static IServiceCollection AddDefaultDisposeSystems(this IServiceCollection serviceCollection)
@@ -54,25 +63,34 @@ namespace YaEngine.Bootstrap
                 .AddScoped<IDisposeSystem, DisposeShadersSystem>()
                 .AddScoped<IDisposeSystem, DisposeTextureSystem>()
                 .AddScoped<IDisposeSystem, DisposeImGuiSystem>()
-                .AddScoped<IDisposeSystem, DisposeInputSystem>();
+                .AddScoped<IDisposeSystem, DisposeEntitiesSystem>();
+        }
+        
+        public static IServiceCollection AddModelSteps(this IServiceCollection serviceCollection)
+        {
+            return serviceCollection
+                .AddScoped<UpdateStep>(_ => ModelSteps.First)
+                .AddScoped<UpdateStep>(_ => ModelSteps.EarlyUpdate)
+                .AddScoped<UpdateStep>(_ => ModelSteps.Update)
+                .AddScoped<UpdateStep>(_ => ModelSteps.LateUpdate);
         }
         
         public static IServiceCollection AddRenderSteps(this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddScoped(_ => RenderSteps.Render)
-                .AddScoped(_ => RenderSteps.ImGui);
+                .AddScoped<UpdateStep>(_ => RenderSteps.Render)
+                .AddScoped<UpdateStep>(_ => RenderSteps.ImGui);
         }
         
         public static IServiceCollection AddPhysicsSteps(this IServiceCollection serviceCollection)
         {
             return serviceCollection
-                .AddScoped(_ => PhysicsSteps.CreateColliders)
-                .AddScoped(_ => PhysicsSteps.Raycast)
-                .AddScoped(_ => PhysicsSteps.EarlyUpdatePhysics)
-                .AddScoped(_ => PhysicsSteps.UpdatePhysics)
-                .AddScoped(_ => PhysicsSteps.AfterPhysicsUpdate)
-                .AddScoped(_ => PhysicsSteps.LatePhysicsUpdate);
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.CreateColliders)
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.Raycast)
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.EarlyUpdatePhysics)
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.UpdatePhysics)
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.AfterPhysicsUpdate)
+                .AddScoped<UpdateStep>(_ => PhysicsSteps.LatePhysicsUpdate);
         }
     }
 }

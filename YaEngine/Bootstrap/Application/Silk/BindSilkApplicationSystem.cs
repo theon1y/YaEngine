@@ -1,10 +1,11 @@
 ﻿using System.Threading.Tasks;
 using Silk.NET.Windowing;
 using YaEcs;
+using YaEngine.Model;
 
 namespace YaEngine.Bootstrap.Silk
 {
-    public class BindSilkApplicationSystem : IInitializeSystem
+    public class BindSilkApplicationSystem : IInitializeModelSystem
     {
         public int Priority => InitializePriorities.First;
         

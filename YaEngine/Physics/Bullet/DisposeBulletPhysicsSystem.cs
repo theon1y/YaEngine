@@ -1,12 +1,14 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using BulletSharp;
 using YaEcs;
+using YaEngine.Bootstrap;
 
 namespace YaEngine.Physics
 {
     public class DisposeBulletPhysicsSystem : IDisposePhysicsSystem
     {
+        public int Priority => DisposePriorities.First;
+        
         public Task ExecuteAsync(IWorld world)
         {
             if (!world.TryGetSingleton(out Physics physics) || physics is not BulletPhysics bulletPhysics)
@@ -34,25 +36,12 @@ namespace YaEngine.Physics
                 obj.Dispose();
             }
 
-            var collidersToRemove = new List<Entity>();
-            world.ForEach((Entity entity, Collider collider) =>
+            world.ForEach((Entity _, Collider collider) =>
             {
                 if (collider is not BulletPhysicsCollider bulletPhysicsCollider) return;
                 
                 bulletPhysicsCollider.CollisionShape.Dispose();
-                collidersToRemove.Add(entity);
             });
-
-            foreach (var entity in collidersToRemove)
-            {
-                world.RemoveComponent<Collider>(entity);
-            }
-
-            bulletPhysics.World.Dispose();
-            bulletPhysics.Broadphase.Dispose();
-            bulletPhysics.Dispatcher?.Dispose();
-            bulletPhysics.ConstraintSolver?.Dispose();
-            bulletPhysics.CollisionConfiguration.Dispose();
             
             return Task.CompletedTask;
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Silk.NET.OpenAL;
 
@@ -6,6 +7,7 @@ namespace YaEngine.Audio.OpenAL
 {
     public class OpenAlAudioSource : AudioSource
     {
+        private readonly CancellationTokenSource cts;
         private readonly AL al;
         private readonly IAudioProvider audioProvider;
         private readonly uint handle;
@@ -18,6 +20,7 @@ namespace YaEngine.Audio.OpenAL
             this.audioProvider = audioProvider;
             handle = al.GenSource();
             bufferId = al.GenBuffer();
+            cts = new CancellationTokenSource();
         }
 
         public override void Play(bool isLooping)
@@ -29,14 +32,25 @@ namespace YaEngine.Audio.OpenAL
                 return;
             }
             
-            Task.Run(Load)
-                .ContinueWith(task => PlayFromBuffer(isLooping, task.Result));
+            Task.Run(LoadAsync)
+                .ContinueWith(task => OnLoad(task, isLooping));
         }
 
-        private byte[] Load()
+        private async Task<byte[]> LoadAsync()
         {
-            data = audioProvider.GetAudioData();
+            data = await audioProvider.GetAudioDataAsync(cts.Token);
             return data;
+        }
+
+        private void OnLoad(Task<byte[]> loadTask, bool isLooping)
+        {
+            if (loadTask.IsCanceled || loadTask.IsFaulted)
+            {
+                Dispose();
+                return;
+            }
+            
+            PlayFromBuffer(isLooping, loadTask.Result);
         }
 
         private void PlayFromBuffer(bool isLooping, byte[] buffer)
@@ -58,6 +72,7 @@ namespace YaEngine.Audio.OpenAL
         public override void Dispose()
         {
             Stop();
+            cts.Cancel();
             al.DeleteSource(handle);
             al.DeleteBuffer(bufferId);
             audioProvider.Dispose();

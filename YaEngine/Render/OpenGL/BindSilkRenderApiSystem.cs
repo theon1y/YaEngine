@@ -7,7 +7,7 @@ using YaEngine.Bootstrap;
 
 namespace YaEngine.Render.OpenGL
 {
-    public class BindSilkRenderApiSystem : IInitializeSystem
+    public class BindSilkRenderApiSystem : IInitializeRenderSystem
     {
         public int Priority => InitializePriorities.First;
 
@@ -20,6 +20,8 @@ namespace YaEngine.Render.OpenGL
         
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out RenderApi _)) return Task.CompletedTask;
+            
             world.AddSingleton<RenderApi>(new GlRenderApi(GL.GetApi(window), Color.Gray));
             return Task.CompletedTask;
         }

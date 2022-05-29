@@ -14,24 +14,27 @@ namespace YaEngine.Physics
 
         private readonly CollisionConfiguration collisionConfiguration;
         private readonly BroadphaseInterface broadphase;
+        private readonly CollisionDispatcher dispatcher;
         private readonly ConstraintSolver? constraintSolver;
+        private readonly DiscreteDynamicsWorld collisionWorld;
         
         public InitializeBulletPhysicsSystem(CollisionConfiguration collisionConfiguration, BroadphaseInterface broadphase,
-            IEnumerable<ConstraintSolver> constraintSolverOpt)
+            CollisionDispatcher dispatcher, IEnumerable<ConstraintSolver> constraintSolverOpt)
         {
             this.collisionConfiguration = collisionConfiguration;
             this.broadphase = broadphase;
+            this.dispatcher = dispatcher;
             this.constraintSolver = constraintSolverOpt.FirstOrDefault();
+            collisionWorld = new DiscreteDynamicsWorld(dispatcher, broadphase, constraintSolver,
+                collisionConfiguration)
+            {
+                Gravity = new Vector3(0, -9.81f, 0)
+            };
         }
         
         public Task ExecuteAsync(IWorld world)
         {
-            var dispatcher = new CollisionDispatcher(collisionConfiguration);
-            var collisionWorld = new DiscreteDynamicsWorld(dispatcher, broadphase, constraintSolver,
-                collisionConfiguration);
-            collisionWorld.Gravity = new Vector3(0, -9.81f, 0);
-            world.AddSingleton<Physics>(new BulletPhysics(collisionWorld, dispatcher, broadphase,
-                constraintSolver, collisionConfiguration));
+            world.AddSingleton<Physics>(new BulletPhysics(collisionWorld));
             return Task.CompletedTask;
         }
     }

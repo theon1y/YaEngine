@@ -2,7 +2,7 @@
 
 namespace YaEngine.Physics
 {
-    public interface IDisposePhysicsSystem : IDisposeSystem
+    public interface IDisposePhysicsSystem : IDisposeSystem, IPhysicsMarker
     {
         
     }

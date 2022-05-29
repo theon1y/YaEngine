@@ -5,11 +5,6 @@ namespace YaEngine.ImGui
 {
     public class GuiRegistry : IComponent
     {
-        public readonly List<IImGuiSystem> Systems;
-
-        public GuiRegistry(List<IImGuiSystem> systems)
-        {
-            Systems = systems;
-        }
+        public readonly List<IImGuiSystem> Systems = new();
     }
 }

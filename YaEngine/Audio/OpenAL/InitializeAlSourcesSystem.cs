@@ -2,10 +2,11 @@
 using System.Threading.Tasks;
 using YaEcs;
 using YaEngine.Bootstrap;
+using YaEngine.Model;
 
 namespace YaEngine.Audio.OpenAL
 {
-    public class InitializeAlSourcesSystem : IInitializeSystem
+    public class InitializeAlSourcesSystem : IInitializeModelSystem
     {
         public int Priority => InitializePriorities.Fourth;
         

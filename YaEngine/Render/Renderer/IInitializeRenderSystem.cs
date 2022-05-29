@@ -2,7 +2,7 @@
 
 namespace YaEngine.Render
 {
-    public interface IInitializeRenderSystem : IInitializeSystem
+    public interface IInitializeRenderSystem : IInitializeSystem, IRenderMarker
     {
         
     }

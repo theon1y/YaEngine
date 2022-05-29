@@ -2,6 +2,8 @@
 using System.Buffers.Binary;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace YaEngine.Audio
@@ -95,17 +97,28 @@ namespace YaEngine.Audio
         
         public byte[] GetAudioData()
         {
-            ReadOnlySpan<byte> file = File.ReadAllBytes(filePath);
+            var bytes = File.ReadAllBytes(filePath);
+            return ReadFromSpan(bytes);
+        }
+
+        public async Task<byte[]> GetAudioDataAsync(CancellationToken ct = default)
+        {
+            var bytes = await File.ReadAllBytesAsync(filePath, ct);
+            return ReadFromSpan(bytes);
+        }
+
+        private byte[] ReadFromSpan(ReadOnlySpan<byte> span)
+        {
             var index = headerEndOffset;
-            while (index + 4 < file.Length)
+            while (index + 4 < span.Length)
             {
-                var identifier = ReadString(file.Slice(index, 4));
+                var identifier = ReadString(span.Slice(index, 4));
                 index += 4;
-                var size = BinaryPrimitives.ReadInt32LittleEndian(file.Slice(index, 4));
+                var size = BinaryPrimitives.ReadInt32LittleEndian(span.Slice(index, 4));
                 index += 4;
                 if (identifier == "data")
                 {
-                    var data = file.Slice(44, size).ToArray();
+                    var data = span.Slice(44, size).ToArray();
 
                     logger.LogDebug("Read {0} bytes Data", size);
                     return data;
@@ -118,7 +131,7 @@ namespace YaEngine.Audio
                 }
                 else if (identifier == "iXML")
                 {
-                    var v = file.Slice(index, size);
+                    var v = span.Slice(index, size);
                     var str = ReadString(v);
                     logger.LogDebug("iXML Chunk: {0}", str);
                     index += size;

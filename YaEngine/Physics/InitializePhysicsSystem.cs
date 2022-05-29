@@ -10,6 +10,8 @@ namespace YaEngine.Physics
         
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out PhysicsTime _)) return Task.CompletedTask;
+            
             world.AddSingleton(new PhysicsTime());
             return Task.CompletedTask;
         }

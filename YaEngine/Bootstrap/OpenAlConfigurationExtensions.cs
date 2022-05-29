@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using YaEcs;
+using YaEngine.Audio;
 using YaEngine.Audio.OpenAL;
 
 namespace YaEngine.Bootstrap
@@ -11,7 +12,7 @@ namespace YaEngine.Bootstrap
             return serviceCollection
                 .AddScoped<IInitializeSystem, InitializeOpenAlSystem>()
                 .AddScoped<IInitializeSystem, InitializeAlSourcesSystem>()
-                .AddScoped<IDisposeSystem, DisposeOpenAlSystem>();
+                .AddScoped<IDisposeSystem, DisposeAudioSourcesSystem>();
         }
     }
 }

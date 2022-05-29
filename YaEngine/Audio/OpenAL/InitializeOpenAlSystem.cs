@@ -3,15 +3,18 @@ using System.Threading.Tasks;
 using Silk.NET.OpenAL;
 using YaEcs;
 using YaEngine.Bootstrap;
+using YaEngine.Model;
 
 namespace YaEngine.Audio.OpenAL
 {
-    public class InitializeOpenAlSystem : IInitializeSystem
+    public class InitializeOpenAlSystem : IInitializeModelSystem
     {
         public int Priority => InitializePriorities.First;
         
         public Task ExecuteAsync(IWorld world)
         {
+            if (world.TryGetSingleton(out AudioApi _)) return Task.CompletedTask;
+            
             unsafe
             {
                 var alc = ALContext.GetApi();

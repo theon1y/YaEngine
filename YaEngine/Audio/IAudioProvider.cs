@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace YaEngine.Audio
 {
@@ -6,5 +8,6 @@ namespace YaEngine.Audio
     {
         AudioProperties ReadProperties();
         byte[] GetAudioData();
+        Task<byte[]> GetAudioDataAsync(CancellationToken ct = default);
     }
 }

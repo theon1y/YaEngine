@@ -2,12 +2,13 @@
 using YaEcs.Bootstrap;
 using YaEngine.Bootstrap;
 using YaEngine.Core;
+using YaEngine.Model;
 
 namespace YaEngine.Animation
 {
-    public class AnimatorUpdateSystem : IUpdateSystem
+    public class AnimatorUpdateSystem : IModelSystem
     {
-        public UpdateStep UpdateStep => UpdateSteps.EarlyUpdate;
+        public UpdateStep UpdateStep => ModelSteps.EarlyUpdate;
         
         public void Execute(IWorld world)
         {
