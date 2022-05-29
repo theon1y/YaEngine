@@ -12,7 +12,7 @@ namespace YaEngine.Import
         public static unsafe T ImportFromFile<T>(string filePath, ImportOptions options, Func<IntPtr, ImportOptions, T> importer)
         {
             var fullPath = System.IO.Path.GetFullPath(filePath);
-            var filePathGcHandle = MarshalToPinnedAscii(fullPath, out var filePathPointer);
+            var filePathGcHandle = MarshalToPinnedUtf8(fullPath, out var filePathPointer);
             var assimp = Assimp.GetApi();
             var scenePointer = assimp.ImportFile(filePathPointer, 0);
             if (scenePointer == null)
@@ -29,10 +29,10 @@ namespace YaEngine.Import
             return result;
         }
         
-        public static unsafe GCHandle MarshalToPinnedAscii(string str, out byte* pointer)
+        public static unsafe GCHandle MarshalToPinnedUtf8(string str, out byte* pointer)
         {
-            var ascii = Encoding.ASCII.GetBytes(str);
-            var pinnedArray = GCHandle.Alloc(ascii, GCHandleType.Pinned);
+            var bytes = Encoding.UTF8.GetBytes(str);
+            var pinnedArray = GCHandle.Alloc(bytes, GCHandleType.Pinned);
             var intPtr = pinnedArray.AddrOfPinnedObject();
             pointer = (byte*) intPtr.ToPointer();
             return pinnedArray;
